@@ -1,8 +1,9 @@
 import pygame
 import Scripts.AssetManager as am
+from Scripts.screen_element import ScreenElement
 
 
-class Character:
+class Character(ScreenElement):
     def __init__(self, anim: dict[str, list[pygame.Surface]], pos: tuple[float, float]) -> None:
         self.anim = anim
         self.anim_state = "idle"
@@ -11,7 +12,7 @@ class Character:
         self.scaled_pos: tuple[float, float] = pos
         return None
 
-    def move(self, x: int = 0, y: int = 0) -> None:
+    def move(self, x: float = 0, y: float = 0) -> None:
         self.unscaled_pos = self.unscaled_pos[0]+x, self.unscaled_pos[1]+y
         self.scaled_pos = self.unscaled_pos[0]*self.scale, self.unscaled_pos[1]*self.scale
         return None
@@ -29,14 +30,17 @@ class Character:
 
 
 class Player(Character):
-    def __init__(self, pos: tuple[float, float]) -> None: # add an avatar, name argument?
+    def __init__(self, pos: tuple[float, float], speed: float = 5.0) -> None: # add an avatar, name argument?
         super().__init__(am.ben_anim, pos)
         self.anim_dir = "s"
+        self.unscaled_speed = speed
+        self.scaled_speed = speed*self.scale
         return None
     
-    def move(self, x: int = 0, y: int = 0, anim_dir: str = "s") -> None:
+    def move(self, x: float = 0, y: float = 0, anim_dir: str = "x") -> None:
         super().move(x, y)
-        self.anim_dir = anim_dir
+        if anim_dir != "x":
+            self.anim_dir = anim_dir
         return None
     
     def draw(self, screen: pygame.Surface, cam_pos: tuple[float, float], tick: int = 0, walking: bool = False) -> None:

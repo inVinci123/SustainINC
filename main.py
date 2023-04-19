@@ -1,7 +1,9 @@
 import pygame
+
 import Scripts.AssetManager as am
 from Scripts.Character import Character, Player
 from Scripts.Camera import Camera
+from Scripts.Tiles import GrassTile
 
 pygame.init()
 
@@ -33,8 +35,8 @@ test_character = Character(ben_anim, (5*120, 3*120))
 test_character.update_scale(game_scale)
 
 anim_dir = "s"
-anim_id = 1
-x = 0 # temp
+anim_tick = 1
+running_time = 0 # temp
 
 cam = Camera(game_scale)
 
@@ -42,45 +44,69 @@ rate = 4
 walking = False
 unscaled_pos = (game_scale*1280/2, game_scale*720/2)
 pos = (unscaled_pos[0]*game_scale, unscaled_pos[1]*game_scale)
-speed = 5
+speed = 200
 player = Player(pos)
 player.update_scale(game_scale)
 
+deltatime = 0
+
+grass_tiles: list[GrassTile] = []
+for i in range(-100, 100): # I'm crazy enough to render 4000 blocks for testing
+    for j in range(-10, 10):
+        g = GrassTile((i*255, j*255))
+        grass_tiles.append(g)
+        g.update_scale(game_scale)
+
+light_font = pygame.font.Font("Assets/Fonts/ApercuMonoProMedium.ttf", 24)
 
 def draw_game_screen() -> None:
     # draw the game screen on the main window
-    global anim_id, ben_idle, x, rate, pos, speed
-    x += 1
+    global anim_tick, ben_idle, running_time, rate, pos, speed
+    fps = clock.get_fps()
+    fps_text = light_font.render(f"FPS: {int(fps)}", True, 0xFFFFFF)
+
+    running_time += deltatime*1000
     game_screen.fill(BG)
     if walking:
         if anim_dir == "w":
-            player.move(0, -speed, anim_dir)
-            cam.update_move_box(0, -speed)
+            player.move(0, -speed*deltatime, anim_dir)
+            cam.update_movebox(0, -speed*deltatime)
         if anim_dir == "s":
-            player.move(0, speed, anim_dir)
-            cam.update_move_box(0, speed)
+            player.move(0, speed*deltatime, anim_dir)
+            cam.update_movebox(0, speed*deltatime)
         if anim_dir == "a":
-            player.move(-speed, 0, anim_dir)
-            cam.update_move_box(-speed, 0)
+            player.move(-speed*deltatime, 0, anim_dir)
+            cam.update_movebox(-speed*deltatime, 0)
         if anim_dir == "d":
-            player.move(speed, 0, anim_dir)
-            cam.update_move_box(speed, 0)
+            player.move(speed*deltatime, 0, anim_dir)
+            cam.update_movebox(speed*deltatime, 0)
     
-    player.draw(game_screen, cam.cam_pos, anim_id, walking)
-    test_character.draw(game_screen, cam.cam_pos, anim_id)
-    # IDEA: REMOVE THE RATE CRAP AND MAKE EACH ANIMATION 4 FRAMES LONG
-    # TODO: also render everything in the order of how they appear on the y axis (first organise them according to their y axis and then render them)
-    if not x % (40//rate):
-        anim_id += 1
-        if anim_id == rate:
-            anim_id = 0
+    for tile in grass_tiles:
+        tile.draw(game_screen, cam.cam_pos, anim_tick)
+
+    player.draw(game_screen, cam.cam_pos, anim_tick, walking)
+    test_character.draw(game_screen, cam.cam_pos, anim_tick)
+    
+    # TODO: also render every character in the order of how they appear on the y axis
+    # (first organise them according to their y axis and then render them)
+    # OR make collisions work so that problem doesn't even happen
+    anim_tick = int(int(running_time/200)%4) # precisely callibrated to work with the animation rate
+
+    """
+    if not running_time % (40//rate):
+        anim_tick += 1
+        if anim_tick == rate:
+            anim_tick = 0
+    """
     window.blit(game_screen, ((L-game_scale*1280)/2, (H-game_scale*720)/2))
+    l, h = fps_text.get_rect().size
+    window.blit(fps_text, (L-(l+10), h+10))
     return None
 
 
 def on_resize() -> None:
     """  Adjust the game size to the new global dimensions """
-    global L, H, window, game_scale, game_screen, ben_anim, test_character
+    global L, H, window, game_scale, game_screen, ben_anim, test_character, grass_tiles
 
     # ensure that the screen dimensions are at least (600, 400)
     if L < 800:
@@ -98,7 +124,9 @@ def on_resize() -> None:
     ben_anim = am.ben_anim
     
     test_character.update_scale(game_scale, ben_anim)
-
+    player.update_scale(game_scale, ben_anim)
+    for tile in grass_tiles:
+        tile.update_scale(game_scale)
     cam.rescale(game_scale)
 
     # recreate the window and the game_screen with new dimensions
@@ -120,39 +148,42 @@ def process_inputs(events: list[pygame.event.Event]) -> bool:
             if e.key == pygame.K_l:
                 # emergency quit (TODO: Remove this)
                 running = False
+            
         if e.type == pygame.VIDEORESIZE:
             # if the screen is resized, update everything to the new size
             L, H = window.get_size()
             on_resize()
-    if (keys_pressed[pygame.K_w] or keys_pressed[pygame.K_UP]) and (keys_pressed[pygame.K_s] or keys_pressed[pygame.K_DOWN]) or (keys_pressed[pygame.K_a] or keys_pressed[pygame.K_LEFT]) and (keys_pressed[pygame.K_d] or keys_pressed[pygame.K_RIGHT]): # don't move if inputs are confusing
-        walking = False
-    elif keys_pressed[pygame.K_w] or keys_pressed[pygame.K_UP]:
-        anim_dir = "w"
-        walking = True
-    elif keys_pressed[pygame.K_s] or keys_pressed[pygame.K_DOWN]:
-        anim_dir = "s"
-        walking = True
-    elif keys_pressed[pygame.K_a] or keys_pressed[pygame.K_LEFT]:
-        anim_dir = "a"
-        walking = True
-    elif keys_pressed[pygame.K_d] or keys_pressed[pygame.K_RIGHT]:
-        anim_dir = "d"
-        walking = True
-    else:
-        walking = False
+
+    walking = False
+    # vertical input
+    if not ((keys_pressed[pygame.K_w] or keys_pressed[pygame.K_UP]) and (keys_pressed[pygame.K_s] or keys_pressed[pygame.K_DOWN])): # check for contradictory key presses
+        if keys_pressed[pygame.K_w] or keys_pressed[pygame.K_UP]:
+            anim_dir = "w"
+            walking = True
+        elif keys_pressed[pygame.K_s] or keys_pressed[pygame.K_DOWN]:
+            anim_dir = "s"
+            walking = True
+    # horizontal input
+    if not ((keys_pressed[pygame.K_a] or keys_pressed[pygame.K_LEFT]) and (keys_pressed[pygame.K_d] or keys_pressed[pygame.K_RIGHT])): # check for contradictory key presses
+        if keys_pressed[pygame.K_a] or keys_pressed[pygame.K_LEFT]:
+            anim_dir = "a"
+            walking = True
+        elif keys_pressed[pygame.K_d] or keys_pressed[pygame.K_RIGHT]:
+            anim_dir = "d"
+            walking = True
     return running
 
 
 def main() -> None:
     """ Main loop where the application runs """
-    global L, H
+    global L, H, deltatime
     running = True
     while running:
         window.fill(BLACK)
         events: list[pygame.event.Event] = pygame.event.get()
         running = process_inputs(events)
         draw_game_screen()
-        clock.tick(FPS)
+        deltatime = clock.tick(FPS)/1000
         pygame.display.flip()
     pygame.quit()
     return None
