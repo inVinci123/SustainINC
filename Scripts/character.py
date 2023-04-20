@@ -2,14 +2,16 @@ import pygame
 import Scripts.AssetManager as am
 from Scripts.screen_element import ScreenElement
 
-
 class Character(ScreenElement):
-    def __init__(self, anim: dict[str, list[pygame.Surface]], pos: tuple[float, float]) -> None:
+    def __init__(self, anim: dict[str, dict[str, list[pygame.Surface]]], pos: tuple[float, float]) -> None:
         self.anim = anim
         self.anim_state = "idle"
+        self.anim_dir = "s"
         self.unscaled_pos: tuple[float, float] = pos
         self.scale: float = 1
         self.scaled_pos: tuple[float, float] = pos
+        self.rect = self.anim[self.anim_dir][self.anim_state][0].get_rect()
+        self.collider_rect = pygame.Rect((0, 0), (0.45*self.rect.width, 0.9*self.rect.height))
         return None
 
     def move(self, x: float = 0, y: float = 0) -> None:
@@ -17,39 +19,80 @@ class Character(ScreenElement):
         self.scaled_pos = self.unscaled_pos[0]*self.scale, self.unscaled_pos[1]*self.scale
         return None
 
-    def draw(self, screen: pygame.Surface, cam_pos: tuple[float, float], tick: int=0) -> None:
+    def draw(self, screen: pygame.Surface, cam_pos: tuple[float, float], tick: int=0) -> tuple[float, float]:
         relative_pos = (self.scaled_pos[0]-cam_pos[0], self.scaled_pos[1]-cam_pos[1])
-        screen.blit(self.anim["s"][self.anim_state][tick], relative_pos) # type: ignore
-        return None
+        self.rect.topleft = relative_pos # type: ignore
+        self.collider_rect.center = self.rect.center
+        screen.blit(self.anim[self.anim_dir][self.anim_state][tick], relative_pos)
+        return relative_pos
 
     def update_scale(self, scale: float, new_anim = None) -> None:
         self.scale = scale
         self.move() # to reset the character's scaled position
         if new_anim: self.anim = new_anim
+        self.rect = self.anim[self.anim_dir][self.anim_state][0].get_rect()
+        self.collider_rect = pygame.Rect((0, 0), (0.45*self.rect.width, 0.9*self.rect.height))
         return None
 
 
 class Player(Character):
-    def __init__(self, pos: tuple[float, float], speed: float = 5.0) -> None: # add an avatar, name argument?
+    def __init__(self, pos: tuple[float, float], speed: float = 200.0) -> None: # add an avatar, name argument?
         super().__init__(am.ben_anim, pos)
-        self.anim_dir = "s"
         self.unscaled_speed = speed
         self.scaled_speed = speed*self.scale
         return None
     
+
     def move(self, x: float = 0, y: float = 0, anim_dir: str = "x") -> None:
         super().move(x, y)
         if anim_dir != "x":
             self.anim_dir = anim_dir
         return None
     
+
     def draw(self, screen: pygame.Surface, cam_pos: tuple[float, float], tick: int = 0, walking: bool = False) -> None:
         self.anim_state = "walk" if walking else "idle"
-        relative_pos = (self.scaled_pos[0]-cam_pos[0], self.scaled_pos[1]-cam_pos[1])
-        screen.blit(self.anim[self.anim_dir][self.anim_state][tick], relative_pos)
+        super().draw(screen, cam_pos, tick)
         return None
 
     def update_scale(self, scale: float, new_anim=None) -> None:
         super().update_scale(scale, new_anim)
         self.anim = am.ben_anim # make it compatible with all characters?
+
+
+class NPC(Character):
+    def __init__(self, anim: dict[str, dict[str, list[pygame.Surface]]], pos: tuple[float, float], name: str = "John Doe") -> None:
+        super().__init__(anim, pos)
+        self.name = name
+        self.name_tag = am.normal_font[14 if len(name)>12 else 16].render(name, True, 0xFFFFFFFF)
+        self.name_tag_rect = self.name_tag.get_rect()
+        self.interaction_radius = 120
+        self.can_interact = False
     
+    def check_interact(self, player_pos):
+        if self.can_interact:
+            # interaction prompt
+            x, y = player_pos[0]-self.unscaled_pos[0], player_pos[1]-self.unscaled_pos[1]
+            if x**2 + y**2 > self.interaction_radius**2:
+                self.can_interact = False
+            if abs(x) > abs(y):
+                self.anim_dir = "a" if x < 0 else "d"
+            else:
+                self.anim_dir = "w" if y < 0 else "s"
+        else:
+            x, y = player_pos[0]-self.unscaled_pos[0], player_pos[1]-self.unscaled_pos[1]
+            if x**2 + y**2 <= self.interaction_radius**2:
+                self.can_interact = True
+                print(f"{self.name} says: Hi bud!")
+    
+    def draw(self, screen: pygame.Surface, cam_pos: tuple[float, float], tick: int = 0, debug_circle: bool = False) -> None:
+        rel_pos = super().draw(screen, cam_pos, tick)
+        screen.blit(self.name_tag, (rel_pos[0]+self.rect.width/2-self.name_tag_rect.width/2, rel_pos[1]-self.name_tag_rect.height/2))
+        if debug_circle: pygame.draw.circle(screen, 0xFFFFFF, (rel_pos[0]+self.rect.size[0]/2, rel_pos[1]+self.rect.size[1]/2), self.interaction_radius*self.scale, 1)
+        return None
+
+    def update_scale(self, scale: float, new_anim=None) -> None:
+        super().update_scale(scale, new_anim)
+        self.name_tag = am.normal_font[14 if len(self.name)>12 else 16].render(self.name, True, 0xFFFFFFFF)
+        self.name_tag_rect = self.name_tag.get_rect()
+        return None
