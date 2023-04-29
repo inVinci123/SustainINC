@@ -1,8 +1,7 @@
 import pygame
 import Scripts.AssetManager as am
-from Scripts.screen_element import ScreenElement
 
-class Character(ScreenElement):
+class Character():
     def __init__(self, anim: dict[str, dict[str, list[pygame.Surface]]], pos: tuple[float, float]) -> None:
         self.anim = anim
         self.anim_state = "idle"
@@ -36,10 +35,18 @@ class Character(ScreenElement):
 
 
 class Player(Character):
-    def __init__(self, pos: tuple[float, float], speed: float = 200.0) -> None: # add an avatar, name argument?
+    def __init__(self, pos: tuple[float, float]) -> None: # add an avatar, name argument?
         super().__init__(am.ben_anim, pos)
-        self.unscaled_speed = speed
-        self.scaled_speed = speed*self.scale
+        self.col = {
+            "tl": pygame.Rect(self.collider_rect.topleft, (8*self.scale, 8*self.scale)),
+            "l": pygame.Rect((self.collider_rect.left, self.collider_rect.centery-24*self.scale), (8*self.scale, 48*self.scale)),
+            "bl": pygame.Rect((self.collider_rect.left, self.collider_rect.bottom-8*self.scale), (8*self.scale, 8*self.scale)),
+            "b": pygame.Rect((self.collider_rect.centerx-8*self.scale, self.collider_rect.bottom-8*self.scale), (16*self.scale, 8*self.scale)),
+            "br": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.bottom-8*self.scale), (8*self.scale, 8*self.scale)),
+            "r": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.centery-24*self.scale), (8*self.scale, 48*self.scale)),
+            "tr": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.top), (8*self.scale, 8*self.scale)),
+            "t": pygame.Rect((self.collider_rect.centerx-8*self.scale, self.collider_rect.top), (16*self.scale, 8*self.scale))
+        }
         return None
     
 
@@ -53,10 +60,30 @@ class Player(Character):
     def draw(self, screen: pygame.Surface, cam_pos: tuple[float, float], tick: int = 0, walking: bool = False) -> None:
         self.anim_state = "walk" if walking else "idle"
         super().draw(screen, cam_pos, tick)
+        self.col = {
+            "tl": pygame.Rect(self.collider_rect.topleft, (8*self.scale, 8*self.scale)),
+            "l": pygame.Rect((self.collider_rect.left, self.collider_rect.centery-24*self.scale), (8*self.scale, 48*self.scale)),
+            "bl": pygame.Rect((self.collider_rect.left, self.collider_rect.bottom-8*self.scale), (8*self.scale, 8*self.scale)),
+            "b": pygame.Rect((self.collider_rect.centerx-8*self.scale, self.collider_rect.bottom-8*self.scale), (16*self.scale, 8*self.scale)),
+            "br": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.bottom-8*self.scale), (8*self.scale, 8*self.scale)),
+            "r": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.centery-24*self.scale), (8*self.scale, 48*self.scale)),
+            "tr": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.top), (8*self.scale, 8*self.scale)),
+            "t": pygame.Rect((self.collider_rect.centerx-8*self.scale, self.collider_rect.top), (16*self.scale, 8*self.scale))
+        }
         return None
 
     def update_scale(self, scale: float, new_anim=None) -> None:
         super().update_scale(scale, new_anim)
+        self.col = {
+            "tl": pygame.Rect(self.collider_rect.topleft, (8*self.scale, 8*self.scale)),
+            "l": pygame.Rect((self.collider_rect.left, self.collider_rect.centery-24*self.scale), (8*self.scale, 48*self.scale)),
+            "bl": pygame.Rect((self.collider_rect.left, self.collider_rect.bottom-8*self.scale), (8*self.scale, 8*self.scale)),
+            "b": pygame.Rect((self.collider_rect.centerx-8*self.scale, self.collider_rect.bottom-8*self.scale), (16*self.scale, 8*self.scale)),
+            "br": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.bottom-8*self.scale), (8*self.scale, 8*self.scale)),
+            "r": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.centery-24*self.scale), (8*self.scale, 48*self.scale)),
+            "tr": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.top), (8*self.scale, 8*self.scale)),
+            "t": pygame.Rect((self.collider_rect.centerx-8*self.scale, self.collider_rect.top), (16*self.scale, 8*self.scale))
+        }
         self.anim = am.ben_anim # make it compatible with all characters?
 
 

@@ -8,7 +8,7 @@ class Camera:
         self.unscaled_cam_pos = (0, 0)
         self.cam_pos = (self.unscaled_cam_pos[0]*game_scale, self.unscaled_cam_pos[1]*game_scale) # set this to the centre of the screen, callibrate everything else accordingly
 
-        self.movebox_lim: tuple[float, float] = (128*game_scale, 72*game_scale)
+        self.movebox_lim: tuple[float, float] = (320*game_scale, 180*game_scale)
         self.unscaled_movebox_pos = (0, 0)
         self.movebox_pos = (0, 0)
         return None
@@ -43,5 +43,5 @@ class Camera:
     def rescale(self, game_scale):
         self.game_scale = game_scale
         self.update_cam_pos()
-        self.movebox_lim = (128*game_scale, 72*game_scale)
+        self.movebox_lim = (320*game_scale, 180*game_scale)
         self.update_movebox(0, 0)

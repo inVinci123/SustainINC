@@ -1,9 +1,8 @@
 import pygame
 
-from Scripts.screen_element import ScreenElement
 import Scripts.AssetManager as am
 
-class GrassTile(ScreenElement):
+class GrassTile:
     def __init__(self, pos: tuple[float, float], size: tuple[float, float] = (0, 0)) -> None:
         self.unscaled_pos: tuple[float, float] = pos
         self.scale: float = 1
