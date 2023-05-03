@@ -1,5 +1,7 @@
 import pygame
 import Scripts.AssetManager as am
+import Scripts.OverlayGUI as overlay
+from Scripts.ScreenElements import InteractionPrompt, OptionsPrompt
 
 class Character():
     def __init__(self, anim: dict[str, dict[str, list[pygame.Surface]]], pos: tuple[float, float]) -> None:
@@ -37,6 +39,9 @@ class Character():
 class Player(Character):
     def __init__(self, pos: tuple[float, float]) -> None: # add an avatar, name argument?
         super().__init__(am.ben_anim, pos)
+        self.can_interact: bool = False
+        self.interaction_character: NPC | None
+
         self.col = {
             "tl": pygame.Rect(self.collider_rect.topleft, (8*self.scale, 8*self.scale)),
             "l": pygame.Rect((self.collider_rect.left, self.collider_rect.centery-24*self.scale), (8*self.scale, 48*self.scale)),
@@ -88,15 +93,19 @@ class Player(Character):
 
 
 class NPC(Character):
-    def __init__(self, anim: dict[str, dict[str, list[pygame.Surface]]], pos: tuple[float, float], name: str = "John Doe") -> None:
+    def __init__(self, anim: dict[str, dict[str, list[pygame.Surface]]], pos: tuple[float, float], name: str = "John Doe", prompts: list[InteractionPrompt] = [InteractionPrompt("Hello there!"), OptionsPrompt("What will you do?")]) -> None:
         super().__init__(anim, pos)
         self.name = name
         self.name_tag = am.normal_font[14 if len(name)>12 else 16].render(name, True, 0xFFFFFFFF)
         self.name_tag_rect = self.name_tag.get_rect()
+        
         self.interaction_radius = 120
         self.can_interact = False
+        
+        self.prompt_index = 0
+        self.prompts = prompts
     
-    def check_interact(self, player_pos):
+    def check_interact(self, player_pos) -> bool:
         if self.can_interact:
             # interaction prompt
             x, y = player_pos[0]-self.unscaled_pos[0], player_pos[1]-self.unscaled_pos[1]
@@ -111,12 +120,26 @@ class NPC(Character):
             if x**2 + y**2 <= self.interaction_radius**2:
                 self.can_interact = True
                 print(f"{self.name} says: Hi bud!")
+        return self.can_interact
     
     def draw(self, screen: pygame.Surface, cam_pos: tuple[float, float], tick: int = 0, debug_circle: bool = False) -> None:
         rel_pos = super().draw(screen, cam_pos, tick)
         screen.blit(self.name_tag, (rel_pos[0]+self.rect.width/2-self.name_tag_rect.width/2, rel_pos[1]-self.name_tag_rect.height/2))
         if debug_circle: pygame.draw.circle(screen, 0xFFFFFF, (rel_pos[0]+self.rect.size[0]/2, rel_pos[1]+self.rect.size[1]/2), self.interaction_radius*self.scale, 1)
         return None
+    
+    def interact(self) -> None:
+        overlay.gui.show_prompt = True
+        overlay.gui.prompt = self.prompts[self.prompt_index]
+        overlay.gui.update_scale(self.scale)
+    
+    def next_dialogue(self) -> bool:
+        self.prompt_index += 1
+        if self.prompt_index >= len(self.prompts):
+            self.prompt_index = 0
+            return False
+        else:
+            return True
 
     def update_scale(self, scale: float, new_anim=None) -> None:
         super().update_scale(scale, new_anim)

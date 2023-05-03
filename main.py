@@ -5,7 +5,20 @@ import Scripts.AssetManager as am
 from Scripts.Character import Character, Player, NPC
 from Scripts.Camera import Camera
 from Scripts.Tiles import GrassTile
-from Scripts.ScreenElements import Button, Text
+from Scripts.ScreenElements import Button, Text, InteractionPrompt
+import Scripts.OverlayGUI as overlay
+
+import sys
+
+# obtain a value for debugging mode (true to get debug stuff on the screen)
+if len(sys.argv) > 2:
+    print("Too many arguments. Please only provide the file name and/or the debugging boolean (True/False).\nProceeding with no debugging.")
+    debugging: bool = False
+elif len(sys.argv) == 2 and sys.argv[1].lower() in ["t", "true"]:
+    debugging: bool = True
+else:
+    debugging: bool = False
+
 
 pygame.init()
 
@@ -14,6 +27,7 @@ FPS = 60  # frame rate
 BLACK = 0x000000  # black bg
 BG = 0xD5C6E0  # temporary purple background
 L, H = 800, 450
+
 
 # window dimensions should occupy 75% of the screen
 info = pygame.display.Info()
@@ -31,8 +45,6 @@ pygame.display.set_caption("Sustain, Inc.")
 # create the game screen (keeping it at the aspect ratio 1280x720)
 game_screen = pygame.Surface((game_scale*1280, game_scale*720))
 
-debugging: bool = True # set to true to get debug stuff on the screen
-
 anim_tick: int = 1
 running_time: float = 0
 deltatime: float = 0
@@ -42,7 +54,9 @@ txt_rect = pygame.Rect((69, 69), (40, 80))
 
 gm = GameManager(game_scale, debugging)
 
-test_txt = Text("OOGABOOGAOOGABOOGABOOOGABADF", (90, 80), am.normal_font[18])
+overlay.gui = overlay.OverlayGUI()
+overlay.gui.update_scale(game_scale)
+
 def draw_game_screen() -> None:
     # draw the game screen on the main window
     global anim_tick, ben_idle, running_time, game_screen
@@ -72,11 +86,7 @@ def draw_game_screen() -> None:
     gm.test_character2.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
     gm.test_character3.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
 
-    # game_screen.blit(test_txt.text_surf, (69, 69))
-    # game_screen.blit(test_txt.text_surf, (69, 69))
-    test_txt.draw(game_screen)
-    pygame.draw.rect(game_screen, 0xFFFFFF, txt_rect, 1)
-
+    overlay.gui.draw(game_screen)
     # drawing the move box for debugging
     if debugging: pygame.draw.rect(game_screen, 0xFFFFFF, pygame.Rect((game_scale*1280/2-gm.cam.movebox_lim[0], game_scale*720/2-gm.cam.movebox_lim[1]), (2*gm.cam.movebox_lim[0], 2*gm.cam.movebox_lim[1])), 1)
 
@@ -92,7 +102,6 @@ def draw_game_screen() -> None:
         window.blit(pos_text, (L-(l+10), 20+h))
     return None
 
-
 def on_resize() -> None:
     """  Adjust the game size to the new global dimensions """
     global L, H, window, game_scale, game_screen
@@ -107,11 +116,13 @@ def on_resize() -> None:
         game_scale = H/720
     else:
         game_scale = L/1280
+    
     gm.resize(game_scale)
-
     # recreate the window and the game_screen with new dimensions
     window = pygame.display.set_mode((L, H), pygame.RESIZABLE)
     game_screen = pygame.Surface((game_scale*1280, game_scale*720))
+    overlay.gui.update_scale(game_scale)
+
     print("dimensions changed to ", L, H)
     return None
 
@@ -128,6 +139,15 @@ def process_inputs(events: list[pygame.event.Event]) -> bool:
             if e.key == pygame.K_l:
                 # emergency quit (TODO: Remove this)
                 running = False
+            if e.key == pygame.K_SPACE:
+                if gm.player_interacting:
+                    if not gm.player.interaction_character.next_dialogue(): # type: ignore
+                        gm.player_interacting = False
+                        gm.movement_enabled = True
+                elif gm.player.can_interact:
+                    if gm.player.interaction_character != None: gm.player.interaction_character.interact() # type: ignore
+                    gm.player_interacting = True
+                    gm.movement_enabled = False
             if debugging:
                 if e.key == pygame.K_LSHIFT:
                     gm.speed = gm.fast_speed
@@ -138,6 +158,17 @@ def process_inputs(events: list[pygame.event.Event]) -> bool:
             # if the screen is resized, update everything to the new size
             L, H = window.get_size()
             on_resize()
+
+    # if gm.player_interacting:
+    #     if keys_pressed[pygame.K_SPACE]:
+    #         if not gm.player.interaction_character.next_dialogue(): # type: ignore
+    #             gm.player_interacting = False
+    #             gm.movement_enabled = True
+    # elif gm.player.can_interact:
+    #     if keys_pressed[pygame.K_SPACE]:
+    #         gm.player.interaction_character.interact() # type: ignore
+    #         gm.player_interacting = True
+    #         gm.movement_enabled = False
 
     if gm.movement_enabled:
         gm.walking = False

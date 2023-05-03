@@ -1,20 +1,20 @@
-import pygame
+import pygame, os
 
 from Scripts.Tiles import GrassTile
 from Scripts.Camera import Camera
 from Scripts.Character import Player, NPC
 import Scripts.AssetManager as am
+from Scripts.ScreenElements import InteractionPrompt, OptionsPrompt
 
 
 class GameManager:
     def __init__(self, game_scale: float, debugging: bool = False) -> None:
-
         am.load_assets(game_scale)
 
         self.debugging: bool = debugging
         self.game_scale = game_scale
         self.ben_anim: dict = am.ben_anim
-        self.test_character = NPC(self.ben_anim, (3*120, 3*120), "Joe Doe 1")
+        self.test_character = NPC(self.ben_anim, (3*120, 3*120), "Joe Doe 1", [InteractionPrompt("Hello there, I'm John Doe!"), InteractionPrompt("Why you still talking to me, huh?"), OptionsPrompt("Leave or Stay?")])
         self.test_character.update_scale(game_scale)
         self.test_character2 = NPC(self.ben_anim, (3*120, 5*120), "Joe Doe 2")
         self.test_character2.update_scale(game_scale)
@@ -34,8 +34,11 @@ class GameManager:
         self.player = Player((1280/2*game_scale + 32, 720/2*game_scale))
         self.player.update_scale(game_scale)
 
+        self.collision_cooldown: bool = False # to ensure that no collisions occur right after scaling
+        self.player_interacting: bool = False
+
         self.grass_tiles: list[GrassTile] = []
-        for i in range(-100, 100): # I'm crazy enough to render 4000 blocks for testing
+        for i in range(-100, 100): # 4000 blocks for testing
             for j in range(-10, 10):
                 g = GrassTile((i*255, j*255))
                 self.grass_tiles.append(g)
@@ -45,6 +48,7 @@ class GameManager:
     
     def evaluate_game_screen(self, deltatime: float = 1) -> None: # better name --> evaluate game? manage game processes?
         # change the player position if the player is walking
+        if not self.movement_enabled: self.walking = False
         if self.walking:
             if self.anim_dir == "w":
                 self.player.move(0, -self.speed*deltatime, self.anim_dir)
@@ -58,17 +62,38 @@ class GameManager:
             if self.anim_dir == "d":
                 self.player.move(self.speed*deltatime, 0, self.anim_dir)
                 self.cam.update_movebox(self.speed*deltatime, 0)
-        self.test_character.check_interact(self.player.unscaled_pos)
-        self.test_character2.check_interact(self.player.unscaled_pos)
-        self.test_character3.check_interact(self.player.unscaled_pos)
+
+        if self.test_character.check_interact(self.player.unscaled_pos):
+            self.player.can_interact = True
+            self.player.interaction_character = self.test_character
+        elif self.test_character2.check_interact(self.player.unscaled_pos):
+            self.player.can_interact = True
+            self.player.interaction_character = self.test_character2
+        elif self.test_character3.check_interact(self.player.unscaled_pos):
+            self.player.can_interact = True
+            self.player.interaction_character = self.test_character3
+        else:
+            self.player.can_interact = False
+            self.player.interaction_character = None
         
+        if self.player_interacting:
+            if self.player.interaction_character == None:
+                print("oogabooga")
+            else:
+                # print(type(self.player.interaction_character))
+                self.player.interaction_character.interact() # type: ignore
+
         # check for collisions
         x, y = self.check_collisions()
         self.player.move(x, y)
         self.cam.update_movebox(x, y)
+        if not (x, y) == (0, 0): print("colliding")
         return None
 
     def check_collisions(self) -> tuple[float, float]:
+        if self.collision_cooldown:
+            self.collision_cooldown = False
+            return (0, 0)
         checkrects = [self.test_character.collider_rect, self.test_character2.collider_rect, self.test_character3.collider_rect] # make it a class wide list
         index = self.player.collider_rect.collidelist(checkrects)
         if index == -1:
@@ -100,9 +125,12 @@ class GameManager:
 
     def resize(self, game_scale) -> None:
         self.game_scale = game_scale
+        self.collision_cooldown = True
         am.load_assets(game_scale)
+        os.system("cls")
         ben_anim = am.ben_anim
         
+        print(f"Old: {self.player.unscaled_pos}")
         self.test_character.update_scale(game_scale, ben_anim)
         self.test_character2.update_scale(game_scale, ben_anim)
         self.test_character3.update_scale(game_scale, ben_anim)
