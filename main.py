@@ -85,6 +85,8 @@ def draw_game_screen() -> None:
     gm.test_character.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
     gm.test_character2.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
     gm.test_character3.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
+    gm.test_building.draw(game_screen, gm.cam.cam_pos)
+    gm.sustain.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
 
     overlay.gui.draw(game_screen)
     # drawing the move box for debugging

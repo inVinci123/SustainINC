@@ -20,14 +20,22 @@ class Button:
 
         self.rect = pygame.Rect(self.scaled_pos, self.scaled_size)
 
+        self.game_screen_dimensions = (0, 0)
+
         self.hover, self.click, self.click_complete = False, False, False
         return None
     
     def check(self) -> None:
         mouse = pygame.mouse.get_pos()
         r_click = pygame.mouse.get_pressed()[0]
+
+        # evaluate the actual mouse position would be if black bars are present
+        w_s = pygame.display.get_window_size()
+        relative_origin = ((w_s[0]-self.game_screen_dimensions[0])/2, (w_s[1]-self.game_screen_dimensions[1])/2)
+        mouse = (mouse[0]-relative_origin[0], mouse[1]-relative_origin[1])
         
         self.hover = self.rect.collidepoint(mouse)
+        # print(mouse)
         if not self.click:
             self.click = self.hover and r_click
         else:
@@ -56,6 +64,8 @@ class Button:
         else:
             self.click = False
             colour = self.inactive_colour
+
+        self.game_screen_dimensions = screen.get_size()
         pygame.draw.rect(screen, colour, self.rect)
         return None
 
@@ -95,6 +105,7 @@ class TextButton(Button):
         super().__init__(pos, size, on_click, inactive_colour, normal_colour, hover_colour, click_colour)
         self.str = text
         self.text_colour = text_colour
+        self.inactive = False
         try:
             self.text = Text(text, (self.scaled_pos[0]+self.scale*10, self.scaled_pos[1]+self.scale*10), (self.scaled_size[0]-self.scale*20, self.scaled_size[1]-self.scale*20), am.normal_font[18], self.text_colour)
         except AttributeError:
@@ -105,10 +116,9 @@ class TextButton(Button):
         super().update_scale(scale)
         self.text = Text(self.str, (self.scaled_pos[0]+self.scale*10, self.scaled_pos[1]+self.scale*10), (self.scaled_size[0]-self.scale*20, self.scaled_size[1]-self.scale*20), am.normal_font[18], self.text_colour)
         return None
-
     
     def draw(self, screen: pygame.Surface, check: bool = True) -> None:
-        super().draw(screen, check)
+        super().draw(screen, check and not self.inactive)
         self.text.draw(screen)
         return None
 
@@ -135,10 +145,6 @@ class Text:
             a = pygame.Surface(self.size, pygame.SRCALPHA) # transparent background surface
             for i in range(lines):
                 b = self.font.render(self.text[i*cpl:(i+1)*cpl], True, self.colour)
-                # blitting surfaces over surfaces reduces their quality, might be better to test the real width of each character and then work like that accordingly
-                # b = pygame.Surface((self.size[0], rect.height))
-                # b.set_colorkey((0, 0, 0))
-                # b.blit(text_box, (-i*self.size[0], 0))
                 a.blit(b, (0, i*height))
             return a
     
@@ -185,26 +191,43 @@ class InteractionPrompt:
         self.text_box.draw(screen)
         return None
     
-class OptionsPrompt(InteractionPrompt):
-    def __init__(self, text: str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.", options: list[Button] = []) -> None:
-        super().__init__(text)
-        if len(options) == 0:
+
+class Options:
+    def __init__(self, opts: list[tuple[str, object]] = []) -> None:
+        if len(opts) == 0:
             self.options = [
                 TextButton((140, 650), (300, 38), lambda: print("Option 1 clicked!"), "Option 1", 0x020202, 0x2A2A2A, 0x1A1A1A, 0x080808, 0xF1F1F1F1),
                 TextButton((490, 650), (300, 38), lambda: print("Option 2 clicked!"), "Option 2", 0x020202, 0x2A2A2A, 0x1A1A1A, 0x080808, 0xF1F1F1F1),
                 TextButton((840, 650), (300, 38), lambda: print("Option 3 clicked!"), "Option 3", 0x020202, 0x2A2A2A, 0x1A1A1A, 0x080808, 0xF1F1F1F1)
             ]
-        else:
-            self.options = options
+        elif len(opts) <= 3:
+            self.options: list[Button] = []
+            for i, o in enumerate(opts):
+                self.options.append(TextButton((140 + i*350, 650), (300, 38), o[1], o[0], 0x020202, 0x2A2A2A, 0x1A1A1A, 0x080808, 0xF1F1F1F1))
+        return None
+    
+    def update_scale(self, scale) -> None:
+        for o in self.options:
+            o.update_scale(scale)
+        return None
+    
+    def draw(self, screen, check=True) -> None:
+        for o in self.options:
+            o.draw(screen, check)
+        return None
+
+
+class OptionsPrompt(InteractionPrompt):
+    def __init__(self, text: str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.", options: Options = Options()) -> None:
+        super().__init__(text)
+        self.opts = options
     
     def update_scale(self, scale: float) -> None:
         super().update_scale(scale)
-        for opt in self.options:
-            opt.update_scale(scale)
+        self.opts.update_scale(scale)
         return None
     
     def draw(self, screen) -> None:
         super().draw(screen)
-        for opt in self.options:
-            opt.draw(screen, True)
+        self.opts.draw(screen)
         return None
