@@ -94,10 +94,7 @@ class GameManager:
             self.player.interaction_character = None
 
         if self.player_interacting:
-            if self.player.interaction_character == None:
-                print("oogabooga")
-            else:
-                # print(type(self.player.interaction_character))
+            if not self.player.interaction_character == None:
                 if self.player.interaction_character.interact():
                         self.player_interacting = False
                         self.movement_enabled = True
@@ -108,7 +105,7 @@ class GameManager:
         self.cam.update_movebox(x, y)
         
         overlay.gui.update_resources(self.resources)
-        if self.debugging: self.resources += self.sustain.cost*deltatime
+        if self.debugging: self.resources += 5*self.sustain.cost*deltatime
         else: self.resources += self.sustain.income*deltatime
         return None
 

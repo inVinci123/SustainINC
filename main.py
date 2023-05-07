@@ -57,6 +57,8 @@ gm = GameManager(game_scale, debugging)
 overlay.gui = overlay.OverlayGUI()
 overlay.gui.update_scale(game_scale)
 
+overlay.gui.push_notification("Game started in debugging mode" if debugging else "Game started.", "info")
+
 def draw_game_screen() -> None:
     # draw the game screen on the main window
     global anim_tick, ben_idle, running_time, game_screen
@@ -88,12 +90,12 @@ def draw_game_screen() -> None:
     gm.test_building.draw(game_screen, gm.cam.cam_pos)
     gm.sustain.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
 
-    overlay.gui.draw(game_screen)
     # drawing the move box for debugging
     if debugging: pygame.draw.rect(game_screen, 0xFFFFFF, pygame.Rect((game_scale*1280/2-gm.cam.movebox_lim[0], game_scale*720/2-gm.cam.movebox_lim[1]), (2*gm.cam.movebox_lim[0], 2*gm.cam.movebox_lim[1])), 1)
 
     anim_tick = int(int(running_time/200)%4) # precisely callibrated to work with the animation rate
 
+    overlay.gui.draw(game_screen, deltatime)
     window.blit(game_screen, ((L-game_scale*1280)/2, (H-game_scale*720)/2))
 
     pos_text = am.normal_font[18].render(f"Pos: {int(gm.player.unscaled_pos[0]), int(gm.player.unscaled_pos[1])}", True, 0xFFFFFF)
@@ -147,7 +149,9 @@ def process_inputs(events: list[pygame.event.Event]) -> bool:
                         gm.player_interacting = False
                         gm.movement_enabled = True
                 elif gm.player.can_interact:
-                    if gm.player.interaction_character != None: gm.player.interaction_character.interact() # type: ignore
+                    if gm.player.interaction_character != None:
+                        gm.player.interaction_character.interact()
+                        overlay.gui.push_notification("Interacting with " + gm.player.interaction_character.name)
                     gm.player_interacting = True
                     gm.movement_enabled = False
             if debugging:
