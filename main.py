@@ -58,6 +58,8 @@ overlay.gui = overlay.OverlayGUI()
 overlay.gui.update_scale(game_scale)
 
 overlay.gui.push_notification("Game started in debugging mode" if debugging else "Game started.", "info")
+overlay.gui.add_objective("interact", "Interact with someone")
+overlay.gui.refresh_objectives()
 
 def draw_game_screen() -> None:
     # draw the game screen on the main window
@@ -81,10 +83,12 @@ def draw_game_screen() -> None:
 
         # other character colliders
         pygame.draw.rect(game_screen, 0xFFFFFF, gm.test_character.collider_rect, 1)
+        pygame.draw.rect(game_screen, 0xFFFFFF, gm.melon_usk.collider_rect, 1)
         pygame.draw.rect(game_screen, 0xFFFFFF, gm.test_character2.collider_rect, 1)
         pygame.draw.rect(game_screen, 0xFFFFFF, gm.test_character3.collider_rect, 1)
 
     gm.test_character.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
+    gm.melon_usk.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
     gm.test_character2.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
     gm.test_character3.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
     gm.test_building.draw(game_screen, gm.cam.cam_pos)

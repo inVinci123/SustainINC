@@ -4,6 +4,7 @@ import os
 from Scripts.Tiles import GrassTile
 from Scripts.Camera import Camera
 from Scripts.Character import Player, NPC
+from Scripts.GameCharacters import MelonUsk
 from Scripts.Building import Building, SustainINC
 import Scripts.AssetManager as am
 from Scripts.ScreenElements import InteractionPrompt, Options, OptionsPrompt
@@ -11,8 +12,15 @@ import Scripts.OverlayGUI as overlay
 
 
 class GameManager:
-    def __init__(self, game_scale: float, debugging: bool = False) -> None:
+    def __init__(self, game_scale: float, debugging: bool = False, player_name: str = "Ben the Brave") -> None:
         am.load_assets(game_scale)
+
+        # a dictionary of "flags" keeping track of whether in game events have occured or not
+        # since it's mutable, it will be passed by reference to every NPC
+        self.flags: dict[str, bool|int] = {
+            "firstmeloninteraction": False,
+            "sustainlevel": 0
+        }
 
         self.debugging: bool = debugging
         self.game_scale = game_scale
@@ -20,14 +28,18 @@ class GameManager:
 
         self.test_character = NPC(self.ben_anim, (3*120, 3*120), "Joe Doe 1")#, [InteractionPrompt(
             #"Hello there, I'm John Doe!"), InteractionPrompt("Why you still talking to me, huh?"), OptionsPrompt("Leave or Stay?", Options(["Leave", self.test_character.uninteract]))])
+        
+        self.melon_usk = MelonUsk(player_name, self.flags)
+        
         self.test_character.update_scale(game_scale)
+        self.melon_usk.update_scale(game_scale)
         self.test_character2 = NPC(self.ben_anim, (3*120, 5*120), "Joe Doe 2")
         self.test_character2.update_scale(game_scale)
         self.test_character3 = NPC(self.ben_anim, (7*120, 6*120), "Joe Doe 3")
         self.test_character3.update_scale(game_scale)
         self.test_building = Building("Test Building", (1600, 400))
         self.test_building.update_scale(game_scale)
-        self.sustain = SustainINC(self)
+        self.sustain = SustainINC(self, self.flags)
         self.sustain.update_scale(game_scale)
 
         self.anim_dir = "s"
@@ -80,6 +92,9 @@ class GameManager:
         if self.test_character.check_interact(self.player.unscaled_pos):
             self.player.can_interact = True
             self.player.interaction_character = self.test_character
+        elif self.melon_usk.check_interact(self.player.unscaled_pos):
+            self.player.can_interact = True
+            self.player.interaction_character = self.melon_usk
         elif self.test_character2.check_interact(self.player.unscaled_pos):
             self.player.can_interact = True
             self.player.interaction_character = self.test_character2
@@ -114,6 +129,7 @@ class GameManager:
             self.collision_cooldown = False
             return (0, 0)
         checkrects = [self.test_character.collider_rect,
+                      self.melon_usk.collider_rect,
                       self.test_character2.collider_rect,
                       self.test_character3.collider_rect,
                       self.test_building.col_rect,
@@ -155,6 +171,7 @@ class GameManager:
 
         print(f"Old: {self.player.unscaled_pos}")
         self.test_character.update_scale(game_scale, ben_anim)
+        self.melon_usk.update_scale(game_scale, ben_anim)
         self.test_character2.update_scale(game_scale, ben_anim)
         self.test_character3.update_scale(game_scale, ben_anim)
         self.player.update_scale(game_scale, ben_anim)

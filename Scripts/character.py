@@ -94,7 +94,7 @@ class Player(Character):
 
 
 class NPC(Character):
-    def __init__(self, anim: dict[str, dict[str, list[pygame.Surface]]], pos: tuple[float, float], name: str = "John Doe", prompts: list[InteractionPrompt] = []) -> None:
+    def __init__(self, anim: dict[str, dict[str, list[pygame.Surface]]], pos: tuple[float, float], name: str = "John Doe", prompts: list[list[InteractionPrompt]] = []) -> None:
         super().__init__(anim, pos)
         self.name = name
         self.name_tag = am.normal_font[14 if len(name)>12 else 16].render(name, True, 0xFFFFFFFF)
@@ -104,9 +104,10 @@ class NPC(Character):
         self.can_interact = False
         self.uninteracting = False
         
-        self.prompt_index = 0
+        self.prompt_index: int = 0
+        self.level: int = 0 # which sequence of prompts to show
         if prompts == []:
-            self.prompts = [InteractionPrompt(f"{self.name}: Hello there! ..."), OptionsPrompt("What will you do?", Options([("Leave", self.uninteract)]))]
+            self.prompts: list[list[InteractionPrompt]] = [[InteractionPrompt(f"{self.name}: Hello there! ..."), OptionsPrompt("What will you do?", Options([("Leave", self.uninteract)]))]]
         else:
             self.prompts = prompts
     
@@ -136,7 +137,7 @@ class NPC(Character):
     def interact(self) -> bool:
         """ returns whether the interactable character wants to uninteract """
         overlay.gui.show_prompt = True
-        overlay.gui.prompt = self.prompts[self.prompt_index]
+        overlay.gui.prompt = self.prompts[self.level][self.prompt_index]
         overlay.gui.update_scale(self.scale)
         if self.uninteracting:
             self.uninteracting = False
@@ -145,12 +146,14 @@ class NPC(Character):
     
     def uninteract(self) -> None:
         self.uninteracting = True
+        self.prompt_index = 0
         return None
     
     def next_dialogue(self) -> bool:
         self.prompt_index += 1
-        if self.prompt_index >= len(self.prompts):
+        if self.prompt_index >= len(self.prompts[self.level]):
             self.prompt_index = 0
+            self.uninteract()
             return False
         else:
             return True

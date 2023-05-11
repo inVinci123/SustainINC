@@ -6,11 +6,13 @@ from Scripts.ScreenElements import InteractionPrompt, Text
 import Scripts.AssetManager as am
 
 def format_value(val: float) -> str:
-    a: str = sigfig.round(f"{int(val)}", decimals=3, notation="eng")
-    i = a.find('E')
+    a: str = sigfig.round(f"{int(val)}", decimals=3, notation="eng") # engineering notation is convenient to use as it only deals with powers of multiple of 3
+    i = a.find('E') # index of where th exponent is
     exp = int(a[i+1:])
-    end: str = ''
-    if exp >= 36: return "Too much"
+    end: str = '' # string ending
+
+    # check which suffix should be applied based on the exponent
+    if exp >= 36: return "Too much money"
     elif exp >= 33: end = " Dc"
     elif exp >= 30: end = " Nn"
     elif exp >= 27: end = " Ot"
@@ -23,7 +25,7 @@ def format_value(val: float) -> str:
     elif exp >= 6: end = ' M'
     elif exp >= 3: end = ' K'
     
-    i = a.find('.')
+    i = a.find('.') # render the relevant digits relative to where the decimal point is
     return a[:i] + a[i:i+3] +end
 
 class OverlayGUI:
@@ -40,39 +42,82 @@ class OverlayGUI:
     scale = 1
 
     notifications: list = []
-    objectives: list = []
+    max_notifications: int = 5
 
+    objectives: dict[str, str] = {}
+    display_objectives: list[Text] = []
+    objectives_bg: pygame.Surface = pygame.Surface((100, 100))
+
+    deleted_notification = None
+    refresh = False
     def draw(self, screen: pygame.Surface, deltatime=1) -> None:
         if self.show_prompt:
             self.prompt.draw(screen)
         
-        screen.blit(self.resources_bg, (10, 10))
+        screen.blit(self.resources_bg, (10*self.scale, 10*self.scale)) # TODO: PROBLEM WITH THE SCALED POSITIONING OF THE RESOURCES TEXT AND THE RESOURCES BG
         try:
             self.resources_text.draw(screen)
         except AttributeError:
             pass
         self.show_prompt = False
+
+        if self.deleted_notification != None: # check if a notification has been deleted
+            self.notifications.pop(self.deleted_notification)
+            self.refresh_notifications() # only refresh after everything has been rendered
+        self.deleted_notification = None
+
+        # render notifications        
         first_notif = True
-        for n in self.notifications:
-            if first_notif:
-                n.draw(screen, deltatime+0.04*len(self.notifications))
-                first_notif = False
-            else:
-                n.draw(screen, deltatime)
+        for i, n in enumerate(self.notifications):
+            if i < self.max_notifications:
+                if first_notif:
+                    n.draw(screen, deltatime+0.04*len(self.notifications))
+                    first_notif = False
+                else:
+                    n.draw(screen, deltatime)
             if n.deleted:
-                self.notifications.remove(n)
-                self.refresh_notifications()
-                break
+                self.deleted_notification = i # delete the notification before the next frame is rendered
+        # render objectives
+        screen.blit(self.objectives_bg, (0*self.scale, 400*self.scale))
+        for obj in self.display_objectives:
+            obj.draw(screen)
+
         return None
 
     def update_resources(self, val: float = 0) -> None:
-        self.resources_text = Text("$ " + format_value(val), (20, 16), (200, 20), am.normal_font[18], 0xFAFAFAFA)
+        self.resources_text = Text("$ " + format_value(val), (20*self.scale, 16*self.scale), (200*self.scale, 20*self.scale), am.normal_font[18], 0xFAFAFAFA)
+        return None
+    
+    def add_objective(self, id: str, objective: str) -> None:
+        self.objectives[id] = objective
+        self.refresh_objectives()
+        return None
+    
+    def remove_objective(self, id: str) -> None:
+        del self.objectives[id]
+        self.refresh_notifications()
+        return None
+    
+    def check_objective(self, id: str) -> bool:
+        try:
+            self.objectives[id]
+            return True
+        except KeyError:
+            return False
+    
+    def refresh_objectives(self) -> None:
+        self.display_objectives.clear()
+        for i, (key, obj) in enumerate(self.objectives.items()):
+            self.display_objectives.append(Text(obj, (10*self.scale, (430+37*i)*self.scale), (250*self.scale, 35*self.scale), am.normal_font[18], 0xF9F9F9F9))
+        self.objectives_bg = pygame.Surface((270*self.scale, (60+32*len(self.display_objectives))*self.scale))
+        self.objectives_bg.fill(0x000000)
+        self.objectives_bg.set_alpha(100)
         return None
     
     def refresh_notifications(self) -> None:
         new = []
         for i, notif in enumerate(self.notifications):
-            new.append(Notification(notif.text.text, (1000*self.scale, (400+55*i)*self.scale), self.scale, notif.type, notif.t))
+            new.append(Notification(notif.text.text, (1000*self.scale, (10+55*i)*self.scale), self.scale, notif.type, notif.t))
         self.notifications = new
         return None
     
@@ -84,6 +129,7 @@ class OverlayGUI:
     def update_scale(self, scale) -> None:
         self.scale = scale
         self.refresh_notifications()
+        self.refresh_objectives()
         self.prompt.update_scale(scale)
         self.resources_bg = pygame.Surface((230*scale, 30*scale))
         self.resources_bg.set_alpha(180)

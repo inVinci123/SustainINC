@@ -124,9 +124,9 @@ class TextButton(Button):
 
 
 class Text:
-    def __init__(self, text: str, pos: tuple[float, float], text_box_size: tuple[float, float], font: pygame.font.Font, colour = 0x1A1A1A) -> None:
+    def __init__(self, text: str, scaled_pos: tuple[float, float], text_box_size: tuple[float, float], font: pygame.font.Font, colour = 0x1A1A1A) -> None:
         self.text = text
-        self.pos = pos
+        self.pos = scaled_pos
         self.size = text_box_size
         self.font = font
         self.colour = colour

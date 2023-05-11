@@ -43,8 +43,9 @@ class Building:
 
 
 class SustainINC(Building):
-    def __init__(self, gm) -> None:
+    def __init__(self, gm, flags: dict[str, bool|int]) -> None:
         self.gm = gm
+        self.flags = flags
         pos = (1e3, 400)
         super().__init__("SUSTAIN INC.", pos, None)
 
@@ -64,7 +65,7 @@ class SustainINC(Building):
         return None
     
     def income_at_level(self, lvl) -> float:
-        return math.exp(1.5*lvl)
+        return math.exp(1.5*lvl) -3*self.level
     
     def check_interact(self, player_pos) -> bool:
         if self.can_interact:
@@ -97,7 +98,7 @@ class SustainINC(Building):
     def update_scale(self, scale) -> None:
         super().update_scale(scale)
         if self.level < self.max_level: self.prompts = [OptionsPrompt(f"SUSTAIN, INC\nCurrent Level: {self.level}\nCurrent Income: {overlay.format_value(int(self.income))}/s\nUpgrade to level {self.level+1}? (New income={overlay.format_value(int(self.income_at_level(self.level+1)))}/s)", Options([(f"$ {overlay.format_value(self.cost)}", self.upgrade), ("Cancel", self.uninteract)]))]
-        else: self.prompts = [OptionsPrompt(f"SUSTAIN, INC\nMax Level ({self.max_level})", Options([("Cancel", self.uninteract)]))]
+        else: self.prompts = [OptionsPrompt(f"SUSTAIN, INC\nMax Level ({self.max_level})\nCurrent Income: {overlay.format_value(int(self.income))}/s", Options([("Cancel", self.uninteract)]))]
         return None
     
     def upgrade(self) -> None:
@@ -105,12 +106,18 @@ class SustainINC(Building):
             if self.gm.resources < self.cost: return None
             self.level += 1
             self.gm.resources -= self.cost
-            self.income = math.e**(3*self.level/2)
+
+            self.income = math.e**(3*self.level/2) - 3*self.level
             self.cost = math.e**(2*self.level)
             if self.level < self.max_level: self.prompts = [OptionsPrompt(f"SUSTAIN, INC\nCurrent Level: {self.level}\nCurrent Income: {overlay.format_value(int(self.income))}/s\nUpgrade to level {self.level+1}? (New income={overlay.format_value(int(self.income_at_level(self.level+1)))}/s)", Options([(f"$ {overlay.format_value(self.cost)}", self.upgrade), ("Cancel", self.uninteract)]))]
-            else: self.prompts = [OptionsPrompt(f"SUSTAIN, INC\nMax Level ({self.max_level})", Options([("Cancel", self.uninteract)]))]
+            else: self.prompts = [OptionsPrompt(f"SUSTAIN, INC\nMax Level ({self.max_level})\nCurrent Income: {overlay.format_value(int(self.income))}/s", Options([("Cancel", self.uninteract)]))]
             overlay.gui.push_notification(f"Upgraded Sustain to lvl {self.level}!" , "upgrade")
-            self.uninteract()
+            if not self.level == self.max_level:
+                overlay.gui.add_objective("upgradesustain", f"Upgrade Sustain to Level {self.level+1}")
+            else:
+                overlay.gui.remove_objective("upgradesustain")
+            self.flags["sustainlevel"] = self.level
+            # self.uninteract()
         elif self.level == self.max_level:
             self.prompts = [OptionsPrompt(f"Max Level ({self.max_level})", Options([("Cancel", self.uninteract)]))]
         return None
