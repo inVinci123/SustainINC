@@ -16,9 +16,9 @@ class Building:
 
         self.unscaled_size: tuple[float, float] = (256, 256) # set it to the size of the building sprite instead
         self.scaled_size: tuple[float, float] = (self.unscaled_size[0]*self.scale, self.unscaled_size[1]*self.scale)
-    
         self.colour = 0x696969
 
+        self.inframe: bool = True
         self.col_rect = pygame.Rect(self.scaled_pos, (256*self.scale, 256*self.scale))
 
         self.name_tag = am.normal_font[14 if len(name)>12 else 16].render(name, True, 0xFFFFFFFF)
@@ -28,8 +28,9 @@ class Building:
     def draw(self, screen: pygame.Surface, cam_pos: tuple[float, float], tick: int=0) -> tuple[float, float]:
         rel_pos: tuple[float, float] = (self.scaled_pos[0]-cam_pos[0], self.scaled_pos[1]-cam_pos[1])
         self.col_rect.topleft = rel_pos # type: ignore
-        pygame.draw.rect(screen, self.colour ,self.col_rect)
-        screen.blit(self.name_tag, (rel_pos[0]+self.col_rect.width/2-self.name_tag_rect.width/2, rel_pos[1]-self.name_tag_rect.height))
+        if self.inframe:
+            pygame.draw.rect(screen, self.colour ,self.col_rect)
+            screen.blit(self.name_tag, (rel_pos[0]+self.col_rect.width/2-self.name_tag_rect.width/2, rel_pos[1]-self.name_tag_rect.height))
         return rel_pos
 
     def update_scale(self, scale) -> None:
@@ -43,14 +44,15 @@ class Building:
 
 
 class SustainINC(Building):
-    def __init__(self, gm, flags: dict[str, bool|int]) -> None:
+    def __init__(self, gm, flags: dict[str, bool|int|object]) -> None:
         self.gm = gm
         self.flags = flags
-        pos = (1e3, 400)
+        pos = (600, 0)
         super().__init__("SUSTAIN INC.", pos, None)
 
         self.interaction_radius = 400
         self.can_interact: bool = False
+        self.inframe: bool = True
 
         self.uninteracting = False
 

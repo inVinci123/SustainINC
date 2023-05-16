@@ -3,6 +3,7 @@ import pygame
 from Scripts.GameManager import GameManager
 import Scripts.AssetManager as am
 from Scripts.Character import Character, Player, NPC
+from Scripts.Building import SustainINC
 from Scripts.Camera import Camera
 from Scripts.Tiles import GrassTile
 from Scripts.ScreenElements import Button, Text, InteractionPrompt
@@ -58,7 +59,7 @@ overlay.gui = overlay.OverlayGUI()
 overlay.gui.update_scale(game_scale)
 
 overlay.gui.push_notification("Game started in debugging mode" if debugging else "Game started.", "info")
-overlay.gui.add_objective("interact", "Interact with someone")
+overlay.gui.add_objective("firstinteract", "Interact with Melon Usk")
 overlay.gui.refresh_objectives()
 
 def draw_game_screen() -> None:
@@ -78,21 +79,34 @@ def draw_game_screen() -> None:
     if debugging:
         # player colliders
         pygame.draw.rect(game_screen, 0xFFFFFF, gm.player.collider_rect, 1)
+        pygame.draw.rect(game_screen, 0xFFFFFF, gm.player.rect, 1)
         for key in gm.player.col.keys():
             pygame.draw.rect(game_screen, 0xFFFFFF, gm.player.col[key], 1)
 
         # other character colliders
-        pygame.draw.rect(game_screen, 0xFFFFFF, gm.test_character.collider_rect, 1)
-        pygame.draw.rect(game_screen, 0xFFFFFF, gm.melon_usk.collider_rect, 1)
-        pygame.draw.rect(game_screen, 0xFFFFFF, gm.test_character2.collider_rect, 1)
-        pygame.draw.rect(game_screen, 0xFFFFFF, gm.test_character3.collider_rect, 1)
+        for c in gm.character_list:
+            pygame.draw.rect(game_screen, 0xFFFFFF, c.collider_rect, 1)
+        # pygame.draw.rect(game_screen, 0xFFFFFF, gm.test_character.collider_rect, 1)
+        # pygame.draw.rect(game_screen, 0xFFFFFF, gm.melon_usk.collider_rect, 1)
+        # pygame.draw.rect(game_screen, 0xFFFFFF, gm.grater_thunderberg.collider_rect, 1)
+        # pygame.draw.rect(game_screen, 0xFFFFFF, gm.test_character2.collider_rect, 1)
+        # pygame.draw.rect(game_screen, 0xFFFFFF, gm.test_character3.collider_rect, 1)
 
-    gm.test_character.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
-    gm.melon_usk.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
-    gm.test_character2.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
-    gm.test_character3.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
-    gm.test_building.draw(game_screen, gm.cam.cam_pos)
-    gm.sustain.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
+    for c in gm.character_list:
+        c.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
+        # gm.test_character.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
+        # gm.melon_usk.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
+        # gm.grater_thunderberg.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
+        # gm.test_character2.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
+        # gm.test_character3.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
+    for b in gm.building_list:
+        if type(b) == SustainINC:
+            b.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
+        else:
+            b.draw(game_screen, gm.cam.cam_pos)
+    # gm.test_building.draw(game_screen, gm.cam.cam_pos)
+    # gm.sustain.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
+
 
     # drawing the move box for debugging
     if debugging: pygame.draw.rect(game_screen, 0xFFFFFF, pygame.Rect((game_scale*1280/2-gm.cam.movebox_lim[0], game_scale*720/2-gm.cam.movebox_lim[1]), (2*gm.cam.movebox_lim[0], 2*gm.cam.movebox_lim[1])), 1)
@@ -126,6 +140,7 @@ def on_resize() -> None:
         game_scale = L/1280
     
     gm.resize(game_scale)
+    
     # recreate the window and the game_screen with new dimensions
     window = pygame.display.set_mode((L, H), pygame.RESIZABLE)
     game_screen = pygame.Surface((game_scale*1280, game_scale*720))
@@ -155,7 +170,7 @@ def process_inputs(events: list[pygame.event.Event]) -> bool:
                 elif gm.player.can_interact:
                     if gm.player.interaction_character != None:
                         gm.player.interaction_character.interact()
-                        overlay.gui.push_notification("Interacting with " + gm.player.interaction_character.name)
+                        # overlay.gui.push_notification("Interacting with " + gm.player.interaction_character.name)
                     gm.player_interacting = True
                     gm.movement_enabled = False
             if debugging:
@@ -168,17 +183,6 @@ def process_inputs(events: list[pygame.event.Event]) -> bool:
             # if the screen is resized, update everything to the new size
             L, H = window.get_size()
             on_resize()
-
-    # if gm.player_interacting:
-    #     if keys_pressed[pygame.K_SPACE]:
-    #         if not gm.player.interaction_character.next_dialogue(): # type: ignore
-    #             gm.player_interacting = False
-    #             gm.movement_enabled = True
-    # elif gm.player.can_interact:
-    #     if keys_pressed[pygame.K_SPACE]:
-    #         gm.player.interaction_character.interact() # type: ignore
-    #         gm.player_interacting = True
-    #         gm.movement_enabled = False
 
     if gm.movement_enabled:
         gm.walking = False

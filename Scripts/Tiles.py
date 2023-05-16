@@ -10,10 +10,13 @@ class GrassTile:
 
         self.size: tuple[float, float] = size
         self.tile: pygame.Surface = am.grass_tile
+
+        self.inframe: bool = True
     
     def draw(self, screen: pygame.Surface, cam_pos: tuple[float, float], tick: int=0) -> None:
         relative_pos = (self.scaled_pos[0]-cam_pos[0], self.scaled_pos[1]-cam_pos[1])
-        screen.blit(self.tile, relative_pos)
+        if self.inframe:
+            screen.blit(self.tile, relative_pos)
         return None
 
     def update_scale(self, scale: float) -> None:

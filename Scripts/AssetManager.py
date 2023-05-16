@@ -2,13 +2,14 @@ import pygame
 
 ben_anim: dict[str, dict[str, list[pygame.Surface]]]
 melon_anim: dict[str, dict[str, list[pygame.Surface]]]
+grater_anim: dict[str, dict[str, list[pygame.Surface]]]
 grass_tile: pygame.Surface
 
 normal_font: dict[int, pygame.font.Font]
 
 
 def load_assets(game_scale):
-    global ben_anim, melon_anim, grass_tile, normal_font
+    global ben_anim, melon_anim, grater_anim, grass_tile, normal_font
     
     back_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/back_idle_1.png"), (80*game_scale, 80*game_scale))
     back_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/back_idle_2.png"), (80*game_scale, 80*game_scale))
@@ -49,8 +50,49 @@ def load_assets(game_scale):
         }
     }
 
-    melon_anim = ben_anim
-    grass_tile = pygame.transform.scale(pygame.image.load("Assets/grass_tile_big.png"), (256*game_scale, 256*game_scale))
+    # melon_anim = ben_anim
+    grater_left_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/Grater/left_idle_1.png"), (80*game_scale, 80*game_scale))
+    grater_left_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/Grater/left_idle_2.png"), (80*game_scale, 80*game_scale))
+
+    grater_right_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/Grater/right_idle_1.png"), (80*game_scale, 80*game_scale))
+    grater_right_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/Grater/right_idle_2.png"), (80*game_scale, 80*game_scale))
+
+    grater_anim = {
+        "w": {
+            "idle": [grater_right_idle_1, grater_right_idle_1, grater_right_idle_2, grater_right_idle_2]
+        },
+        "s": {
+            "idle": [grater_left_idle_1, grater_left_idle_1, grater_left_idle_2, grater_left_idle_2]
+        },
+        "d": {
+            "idle": [grater_right_idle_1, grater_right_idle_1, grater_right_idle_2, grater_right_idle_2]
+        },
+        "a": {
+            "idle": [grater_left_idle_1, grater_left_idle_1, grater_left_idle_2, grater_left_idle_2]
+        }
+    }
+
+    melon_left_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/melon/left_idle_1.png"), (80*game_scale, 80*game_scale))
+    melon_left_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/melon/left_idle_2.png"), (80*game_scale, 80*game_scale))
+
+    melon_right_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/melon/right_idle_1.png"), (80*game_scale, 80*game_scale))
+    melon_right_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/melon/right_idle_2.png"), (80*game_scale, 80*game_scale))
+
+    melon_anim = {
+        "w": {
+            "idle": [melon_right_idle_1, melon_right_idle_1, melon_right_idle_2, melon_right_idle_2]
+        },
+        "s": {
+            "idle": [melon_left_idle_1, melon_left_idle_1, melon_left_idle_2, melon_left_idle_2]
+        },
+        "d": {
+            "idle": [melon_right_idle_1, melon_right_idle_1, melon_right_idle_2, melon_right_idle_2]
+        },
+        "a": {
+            "idle": [melon_left_idle_1, melon_left_idle_1, melon_left_idle_2, melon_left_idle_2]
+        }
+    }
+    grass_tile = pygame.transform.scale(pygame.image.load("Assets/grass_tile_big.png"), (256*game_scale, 256*game_scale)) # animation style doesn't match
 
     normal_font = {
         8: pygame.font.Font("Assets/Fonts/ApercuMonoProMedium.ttf", int(8*game_scale)),
@@ -60,3 +102,5 @@ def load_assets(game_scale):
         18: pygame.font.Font("Assets/Fonts/ApercuMonoProMedium.ttf", int(18*game_scale)),
         24: pygame.font.Font("Assets/Fonts/ApercuMonoProMedium.ttf", int(24*game_scale)),
     }
+
+# IMAGES INSPIRED FROM DREAM STUDIO AND DALLE

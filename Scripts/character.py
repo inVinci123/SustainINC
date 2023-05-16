@@ -14,6 +14,7 @@ class Character():
         self.scaled_pos: tuple[float, float] = pos
         self.rect = self.anim[self.anim_dir][self.anim_state][0].get_rect()
         self.collider_rect = pygame.Rect((0, 0), (0.45*self.rect.width, 0.9*self.rect.height))
+        self.inframe: bool = True
         return None
 
     def move(self, x: float = 0, y: float = 0) -> None:
@@ -25,7 +26,8 @@ class Character():
         relative_pos = (self.scaled_pos[0]-cam_pos[0], self.scaled_pos[1]-cam_pos[1])
         self.rect.topleft = relative_pos # type: ignore
         self.collider_rect.center = self.rect.center
-        screen.blit(self.anim[self.anim_dir][self.anim_state][tick], relative_pos)
+        if self.inframe:
+            screen.blit(self.anim[self.anim_dir][self.anim_state][tick], relative_pos)
         return relative_pos
 
     def update_scale(self, scale: float, new_anim = None) -> None:
@@ -149,8 +151,8 @@ class NPC(Character):
         self.prompt_index = 0
         return None
     
-    def next_dialogue(self) -> bool:
-        self.prompt_index += 1
+    def next_dialogue(self, num=1) -> bool:
+        self.prompt_index += num
         if self.prompt_index >= len(self.prompts[self.level]):
             self.prompt_index = 0
             self.uninteract()

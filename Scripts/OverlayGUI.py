@@ -12,7 +12,7 @@ def format_value(val: float) -> str:
     end: str = '' # string ending
 
     # check which suffix should be applied based on the exponent
-    if exp >= 36: return "Too much money"
+    if exp >= 36: return "Kedar level money"
     elif exp >= 33: end = " Dc"
     elif exp >= 30: end = " Nn"
     elif exp >= 27: end = " Ot"
@@ -35,7 +35,8 @@ class OverlayGUI:
     resources_bg.fill(0x121212)
     resources_bg.set_alpha(180)
     try:
-        resources_text = Text(f"{format_value(0)}", (20, 11), (200, 20), am.normal_font[18], 0xFAFAFAFA)
+        resources_text = Text(f"$ {format_value(0)}", (20, 11), (200, 20), am.normal_font[18], 0xFAFAFAFA)
+        objectives_text: Text = Text("Objectives", (10, 400), (250, 40), am.normal_font[24], 0xFAFAFAFA)
     except AttributeError:
         pass
 
@@ -54,9 +55,10 @@ class OverlayGUI:
         if self.show_prompt:
             self.prompt.draw(screen)
         
-        screen.blit(self.resources_bg, (10*self.scale, 10*self.scale)) # TODO: PROBLEM WITH THE SCALED POSITIONING OF THE RESOURCES TEXT AND THE RESOURCES BG
+        screen.blit(self.resources_bg, (10*self.scale, 10*self.scale)) 
         try:
             self.resources_text.draw(screen)
+            self.objectives_text.draw(screen)
         except AttributeError:
             pass
         self.show_prompt = False
@@ -78,7 +80,7 @@ class OverlayGUI:
             if n.deleted:
                 self.deleted_notification = i # delete the notification before the next frame is rendered
         # render objectives
-        screen.blit(self.objectives_bg, (0*self.scale, 400*self.scale))
+        screen.blit(self.objectives_bg, (0*self.scale, 380*self.scale))
         for obj in self.display_objectives:
             obj.draw(screen)
 
@@ -109,9 +111,11 @@ class OverlayGUI:
         self.display_objectives.clear()
         for i, (key, obj) in enumerate(self.objectives.items()):
             self.display_objectives.append(Text(obj, (10*self.scale, (430+37*i)*self.scale), (250*self.scale, 35*self.scale), am.normal_font[18], 0xF9F9F9F9))
-        self.objectives_bg = pygame.Surface((270*self.scale, (60+32*len(self.display_objectives))*self.scale))
+        self.objectives_bg = pygame.Surface((270*self.scale, (100+32*len(self.display_objectives))*self.scale))
         self.objectives_bg.fill(0x000000)
         self.objectives_bg.set_alpha(100)
+        self.objectives_text = Text("Objectives", (10*self.scale, 400*self.scale), (250*self.scale, 40*self.scale), am.normal_font[24], 0xF9F9F9F9)
+
         return None
     
     def refresh_notifications(self) -> None:
