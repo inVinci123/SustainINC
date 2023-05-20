@@ -1,11 +1,13 @@
 import pygame
-from decimal import Decimal
 import sigfig
 
 from Scripts.ScreenElements import InteractionPrompt, Text
 import Scripts.AssetManager as am
 
 def format_value(val: float) -> str:
+    """
+    Convert the value into a "money" format
+    """
     a: str = sigfig.round(f"{int(val)}", decimals=3, notation="eng") # engineering notation is convenient to use as it only deals with powers of multiple of 3
     i = a.find('E') # index of where th exponent is
     exp = int(a[i+1:])
@@ -31,12 +33,17 @@ def format_value(val: float) -> str:
 class OverlayGUI:
     prompt = InteractionPrompt()
     show_prompt: bool = True
-    resources_bg = pygame.Surface((230, 30))
+    resources_bg = pygame.Surface((280, 30))
     resources_bg.fill(0x121212)
     resources_bg.set_alpha(180)
+
+    temperature_bg = pygame.Surface((280, 30))
+    temperature_bg.fill(0x121212)
+    temperature_bg.set_alpha(180)
     try:
         resources_text = Text(f"$ {format_value(0)}", (20, 11), (200, 20), am.normal_font[18], 0xFAFAFAFA)
         objectives_text: Text = Text("Objectives", (10, 400), (250, 40), am.normal_font[24], 0xFAFAFAFA)
+        global_temp_text = Text("Degrees away from destruction: 0", (20, 40), (200, 20), am.normal_font[18], 0xFAFAFAFA)
     except AttributeError:
         pass
 
@@ -48,17 +55,21 @@ class OverlayGUI:
     objectives: dict[str, str] = {}
     display_objectives: list[Text] = []
     objectives_bg: pygame.Surface = pygame.Surface((100, 100))
+    show_global_temp: bool = False
 
     deleted_notification = None
     refresh = False
+
     def draw(self, screen: pygame.Surface, deltatime=1) -> None:
         if self.show_prompt:
             self.prompt.draw(screen)
         
         screen.blit(self.resources_bg, (10*self.scale, 10*self.scale)) 
+        if self.show_global_temp: screen.blit(self.temperature_bg, (10*self.scale, 50*self.scale)) 
         try:
             self.resources_text.draw(screen)
             self.objectives_text.draw(screen)
+            if self.show_global_temp: self.global_temp_text.draw(screen)
         except AttributeError:
             pass
         self.show_prompt = False
@@ -80,7 +91,7 @@ class OverlayGUI:
             if n.deleted:
                 self.deleted_notification = i # delete the notification before the next frame is rendered
         # render objectives
-        screen.blit(self.objectives_bg, (0*self.scale, 380*self.scale))
+        screen.blit(self.objectives_bg, (10*self.scale, 100*self.scale))
         for obj in self.display_objectives:
             obj.draw(screen)
 
@@ -90,6 +101,10 @@ class OverlayGUI:
         self.resources_text = Text("$ " + format_value(val), (20*self.scale, 16*self.scale), (200*self.scale, 20*self.scale), am.normal_font[18], 0xFAFAFAFA)
         return None
     
+    def update_global_temp(self, val: float = 0) -> None:
+        self.global_temp_text = Text(f"Delta Temp: {val}", (20*self.scale, 56*self.scale), (200*self.scale, 20*self.scale), am.normal_font[18], 0xFAFAFAFA if val < 0.5 else (0xFFFF0000 if val < 1 else 0xFF000000))
+        return None
+    
     def add_objective(self, id: str, objective: str) -> None:
         self.objectives[id] = objective
         self.refresh_objectives()
@@ -97,7 +112,7 @@ class OverlayGUI:
     
     def remove_objective(self, id: str) -> None:
         del self.objectives[id]
-        self.refresh_notifications()
+        self.refresh_objectives()
         return None
     
     def check_objective(self, id: str) -> bool:
@@ -109,12 +124,12 @@ class OverlayGUI:
     
     def refresh_objectives(self) -> None:
         self.display_objectives.clear()
-        for i, (key, obj) in enumerate(self.objectives.items()):
-            self.display_objectives.append(Text(obj, (10*self.scale, (430+37*i)*self.scale), (250*self.scale, 35*self.scale), am.normal_font[18], 0xF9F9F9F9))
-        self.objectives_bg = pygame.Surface((270*self.scale, (100+32*len(self.display_objectives))*self.scale))
+        for i, (_, obj) in enumerate(self.objectives.items()):
+            self.display_objectives.append(Text(obj, (20*self.scale, (150+37*i)*self.scale), (260*self.scale, 35*self.scale), am.normal_font[18], 0xF9F9F9F9))
+        self.objectives_bg = pygame.Surface((280*self.scale, (100+32*len(self.display_objectives))*self.scale))
         self.objectives_bg.fill(0x000000)
         self.objectives_bg.set_alpha(100)
-        self.objectives_text = Text("Objectives", (10*self.scale, 400*self.scale), (250*self.scale, 40*self.scale), am.normal_font[24], 0xF9F9F9F9)
+        self.objectives_text = Text("Objectives", (20*self.scale, 120*self.scale), (650*self.scale, 40*self.scale), am.normal_font[24], 0xF9F9F9F9)
 
         return None
     
@@ -135,9 +150,12 @@ class OverlayGUI:
         self.refresh_notifications()
         self.refresh_objectives()
         self.prompt.update_scale(scale)
-        self.resources_bg = pygame.Surface((230*scale, 30*scale))
+        self.resources_bg = pygame.Surface((280*scale, 30*scale))
         self.resources_bg.set_alpha(180)
         self.resources_bg.fill(0x121212)
+        self.temperature_bg = pygame.Surface((280*scale, 30*scale))
+        self.temperature_bg.set_alpha(180)
+        self.temperature_bg.fill(0x121212)
         return None
 
 class Notification:
@@ -153,7 +171,7 @@ class Notification:
             self.bg.fill(0x1A1A1A)
         
         self.bg.set_alpha(180)
-        self.text = Text(text, (pos[0]+scale*10, pos[1]+scale*5), (250*scale, 40*scale), am.normal_font[18], 0xFAFAFAFA)# if type == "default" else 0xFAFAFA)
+        self.text = Text(text, (pos[0]+scale*10, pos[1]+scale*5), (250*scale, 40*scale), am.normal_font[18], 0xFAFAFAFA)
         self.t = remaining_time
         self.deleted = False
         return None
@@ -164,7 +182,5 @@ class Notification:
         if self.t <= 0: self.deleted = True
         self.text.draw(screen)
         return None
-    
-
 
 gui: OverlayGUI

@@ -131,26 +131,13 @@ class Text:
         self.font = font
         self.colour = colour
         self.game_screen_size = (1280, 720)
+        self.scale = 1
         self.text_surf = self.generate_text_surf()
         return None
     
     def generate_text_surf(self) -> pygame.Surface:
-        # TODO:
-        # Split the string
-        # Check if the word fits on the line
-        # If not, render a new line
-        # continue doing so until the end
-
-        # str = self.text.split()
-        # lines = []
-        # avg_width, height = self.font.render("a", True, self.colour).get_rect().size
-        # cpl = int(self.size[0]/avg_width)
-        # running = ""
-        # first: bool = True
-
-        # text_box = self.font.render(self.text, True, self.colour)
         avg_length, height = self.font.render("a", True, self.colour).get_rect().size
-        cpl = int(self.size[0]/avg_length)
+        cpl = int((self.size[0]-5*self.scale)/avg_length)
         split_string = self.text.split("\n")
         lines = []
         a = pygame.Surface(self.size, pygame.SRCALPHA) # transparent background surface
@@ -179,6 +166,7 @@ class Text:
         if game_screen.get_size() != self.game_screen_size:
             # Quick optimisation to only update the text surface when the game screen has changed
             self.game_screen_size = game_screen.get_size()
+            self.scale = min(self.game_screen_size[0]/1280, self.game_screen_size[1]/720)
             self.text_surf = self.generate_text_surf()
         game_screen.blit(self.text_surf, self.pos)
 

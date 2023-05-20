@@ -94,24 +94,17 @@ def draw_game_screen() -> None:
 
     for c in gm.character_list:
         c.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
-        # gm.test_character.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
-        # gm.melon_usk.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
-        # gm.grater_thunderberg.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
-        # gm.test_character2.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
-        # gm.test_character3.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
     for b in gm.building_list:
         if type(b) == SustainINC:
             b.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
         else:
             b.draw(game_screen, gm.cam.cam_pos)
-    # gm.test_building.draw(game_screen, gm.cam.cam_pos)
-    # gm.sustain.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
 
 
     # drawing the move box for debugging
     if debugging: pygame.draw.rect(game_screen, 0xFFFFFF, pygame.Rect((game_scale*1280/2-gm.cam.movebox_lim[0], game_scale*720/2-gm.cam.movebox_lim[1]), (2*gm.cam.movebox_lim[0], 2*gm.cam.movebox_lim[1])), 1)
 
-    anim_tick = int(int(running_time/200)%4) # precisely callibrated to work with the animation rate
+    anim_tick = int(running_time/200)%4 # precisely callibrated to work with the animation rate
 
     overlay.gui.draw(game_screen, deltatime)
     window.blit(game_screen, ((L-game_scale*1280)/2, (H-game_scale*720)/2))
@@ -221,5 +214,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    # execute the program if this is the main file
+    # execute the program when the main file is run
     main()

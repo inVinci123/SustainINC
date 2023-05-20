@@ -6,10 +6,14 @@ grater_anim: dict[str, dict[str, list[pygame.Surface]]]
 grass_tile: pygame.Surface
 
 normal_font: dict[int, pygame.font.Font]
-
+buildings: dict[str, pygame.Surface]
 
 def load_assets(game_scale):
-    global ben_anim, melon_anim, grater_anim, grass_tile, normal_font
+    global ben_anim, melon_anim, grater_anim, grass_tile, normal_font, buildings
+
+    buildings = {
+        "SustainINC": pygame.transform.scale(pygame.image.load("./Assets/Buildings/SustainINC.png"), (512*game_scale, 512*game_scale))
+    }
     
     back_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/back_idle_1.png"), (80*game_scale, 80*game_scale))
     back_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/back_idle_2.png"), (80*game_scale, 80*game_scale))

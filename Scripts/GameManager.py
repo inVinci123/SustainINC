@@ -4,7 +4,7 @@ import os
 from Scripts.Tiles import GrassTile
 from Scripts.Camera import Camera
 from Scripts.Character import Character, Player, NPC
-from Scripts.GameCharacters import GraterThunderberg, MelonUsk
+from Scripts.GameCharacters import AmazonEmployee, BuffJesos, GraterThunderberg, MelonUsk, MrDani, MrFeast, MrGutters
 from Scripts.Building import Building, SustainINC
 import Scripts.AssetManager as am
 from Scripts.ScreenElements import InteractionPrompt, Options, OptionsPrompt
@@ -15,7 +15,7 @@ class GameManager:
     def __init__(self, game_scale: float, debugging: bool = False, player_name: str = "Ben the Brave") -> None:
         am.load_assets(game_scale)
 
-        # a dictionary of "flags" keeping track of whether in game events have occured or not
+        # a dictionary of global variables/flags keeping track of whether in game events have occured or not
         # since it's mutable, it will be passed by reference to every NPC
         self.flags: dict[str, bool|int|object] = {
             "firstmeloninteraction": False,
@@ -24,29 +24,37 @@ class GameManager:
             "spendresources": self.spend_resources,
             "getresources": self.get_resources,
             "donatetoun": False,
-            "investedinaslet": 0,
-            "buffreference": False
+            "investmentlevel": 0,
+            "buffreference": False,
+            "globaltemperatureunlocked": False,
+            "unlockglobaltemperature": self.unlock_global_temperature,
+            "danireference": False,
+            "daniconvinced": False,
+            "spaceyacquired": False,
+            "saharaacquired": False,
         }
 
         self.debugging: bool = debugging
         self.game_scale = game_scale
         self.ben_anim: dict = am.ben_anim
 
-        # self.test_character = NPC(self.ben_anim, (3*120, 3*120), "Joe Doe 1")#, [InteractionPrompt(
-            #"Hello there, I'm John Doe!"), InteractionPrompt("Why you still talking to me, huh?"), OptionsPrompt("Leave or Stay?", Options(["Leave", self.test_character.uninteract]))])
-        
-        
         # need it to be standalone
         self.sustain = SustainINC(self, self.flags)
         
         self.character_dict: dict[str, NPC] = {
             "Melon Usk": MelonUsk(player_name, self.flags),
-            "Grater Thunderberg": GraterThunderberg(player_name, self.flags)
+            "Grater Thunderberg": GraterThunderberg(player_name, self.flags),
+            "Mr Gutters": MrGutters(player_name, self.flags),
+            "Mr Dani": MrDani(player_name, self.flags),
+            "Amazon Employee #1": AmazonEmployee(player_name, self.flags, (-200, 500)),
+            "Amazon Employee #2": AmazonEmployee(player_name, self.flags, (200, 500)),
+            "Buff Jesos": BuffJesos(player_name, self.flags),
+            "Mr Feast": MrFeast(player_name, self.flags)
         }
         self.character_list: list[NPC] = [item for _, item in self.character_dict.items()] # class objects are mutable, so this is efficient to do
 
         self.building_dict: dict[str, Building] = {
-            "Test Building": Building("Test Building", (1000, 0)),
+            "Test Building": Building("Test Building", (1200, 0)),
             "Sustain INC": self.sustain
         }
         self.building_list: list[Building] = [b for _, b in self.building_dict.items()]
@@ -73,6 +81,7 @@ class GameManager:
         self.player.update_scale(game_scale)
 
         self.resources: float = 0
+        self.global_temp: float = 0
 
         # no collisions for 2 frames
         self.collision_cooldown: int = 2 
@@ -97,7 +106,11 @@ class GameManager:
     def get_resources(self) -> float:
         return self.resources
 
-    # better name --> evaluate game? manage game processes?
+    def unlock_global_temperature(self) -> None:
+        self.flags["globaltemperatureunlocked"] = True
+        overlay.gui.show_global_temp = True
+        overlay.gui.update_global_temp(0.9)
+
     def evaluate_game_screen(self, deltatime: float = 1) -> None:
         # change the player position if the player is walking
         if not self.movement_enabled:
@@ -120,7 +133,7 @@ class GameManager:
         for interactable in self.interactables:
             # check if the interactable is in frame
             if type(interactable) == SustainINC:
-                check_lims = (700+256, 400+256) # consider the dimensions of the building
+                check_lims = (700+interactable.unscaled_size[0], 400+interactable.unscaled_size[1]) # consider the dimensions of the building
             else:
                 check_lims = (700, 400)
             if abs(self.cam.unscaled_cam_pos[0]+640-interactable.unscaled_pos[0]) > check_lims[0] or abs(self.cam.unscaled_cam_pos[1]+360-interactable.unscaled_pos[1]) > check_lims[1]:
@@ -140,7 +153,7 @@ class GameManager:
                 self.player.interaction_character = None
 
         for b in self.building_list: # check if other buildings are in frame too
-            if abs(self.cam.unscaled_cam_pos[0]+640-b.unscaled_pos[0]) > 700+256 or abs(self.cam.unscaled_cam_pos[1]+360-b.unscaled_pos[1]) > 400+256: b.inframe = False
+            if abs(self.cam.unscaled_cam_pos[0]+640-b.unscaled_pos[0]) > 700+b.unscaled_size[0] or abs(self.cam.unscaled_cam_pos[1]+360-b.unscaled_pos[1]) > 400+b.unscaled_size[1]: b.inframe = False
             else: b.inframe = True
 
         for g in self.grass_tiles:
@@ -162,8 +175,8 @@ class GameManager:
         
         overlay.gui.update_resources(self.resources)
         if self.debugging: self.resources += 5*self.sustain.cost*deltatime
-        else: self.resources += self.sustain.income*deltatime*(1+self.flags["investedinaslet"]*0.1) # type: ignore
-        
+        else: self.resources += self.sustain.income*deltatime # type: ignore
+        overlay.gui.update_global_temp(self.global_temp)
         return None
 
     def check_collisions(self) -> tuple[float, float]:
@@ -203,16 +216,17 @@ class GameManager:
         self.collision_cooldown = 2
         am.load_assets(game_scale)
         os.system("cls")
-        ben_anim = am.ben_anim
-
-        # print(f"Old: {self.player.unscaled_pos}")
-        for c in self.character_list: # TODO: NEED TO CHANGE THIS TO MAKE IT WORK FOR EVERY INDIVIDUAL CHARACTER
-            if c.name == "Grater Thunderberg":
-                c.update_scale(game_scale, am.grater_anim)
-            else:
-                c.update_scale(game_scale, ben_anim)
         
-        self.player.update_scale(game_scale, ben_anim)
+        # assign the relevant anim to each character
+        self.player.update_scale(game_scale, am.ben_anim)
+        self.character_dict["Melon Usk"].update_scale(game_scale, am.melon_anim)
+        self.character_dict["Grater Thunderberg"].update_scale(game_scale, am.grater_anim)
+        self.character_dict["Mr Gutters"].update_scale(game_scale, am.ben_anim)
+        self.character_dict["Mr Dani"].update_scale(game_scale, am.ben_anim)
+        self.character_dict["Amazon Employee #1"].update_scale(game_scale, am.ben_anim)
+        self.character_dict["Amazon Employee #2"].update_scale(game_scale, am.ben_anim)
+        self.character_dict["Buff Jesos"].update_scale(game_scale, am.ben_anim)
+        self.character_dict["Mr Feast"].update_scale(game_scale, am.ben_anim)
         
         for b in self.building_list:
             b.update_scale(game_scale)

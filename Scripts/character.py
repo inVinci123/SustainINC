@@ -99,6 +99,7 @@ class NPC(Character):
     def __init__(self, anim: dict[str, dict[str, list[pygame.Surface]]], pos: tuple[float, float], name: str = "John Doe", prompts: list[list[InteractionPrompt]] = []) -> None:
         super().__init__(anim, pos)
         self.name = name
+        self.carbon_contribution: float = 1
         self.name_tag = am.normal_font[14 if len(name)>12 else 16].render(name, True, 0xFFFFFFFF)
         self.name_tag_rect = self.name_tag.get_rect()
         
@@ -119,15 +120,11 @@ class NPC(Character):
             x, y = player_pos[0]-self.unscaled_pos[0], player_pos[1]-self.unscaled_pos[1]
             if x**2 + y**2 > self.interaction_radius**2:
                 self.can_interact = False
-            if abs(x) > abs(y):
-                self.anim_dir = "a" if x < 0 else "d"
-            else:
-                self.anim_dir = "w" if y < 0 else "s"
+            self.anim_dir = "a" if x < 0 else "d"
         else:
             x, y = player_pos[0]-self.unscaled_pos[0], player_pos[1]-self.unscaled_pos[1]
             if x**2 + y**2 <= self.interaction_radius**2:
                 self.can_interact = True
-                print(f"{self.name} says: Hi bud!")
         return self.can_interact
     
     def draw(self, screen: pygame.Surface, cam_pos: tuple[float, float], tick: int = 0, debug_circle: bool = False) -> None:
@@ -138,12 +135,12 @@ class NPC(Character):
     
     def interact(self) -> bool:
         """ returns whether the interactable character wants to uninteract """
-        overlay.gui.show_prompt = True
-        overlay.gui.prompt = self.prompts[self.level][self.prompt_index]
-        overlay.gui.update_scale(self.scale)
         if self.uninteracting:
             self.uninteracting = False
             return True
+        overlay.gui.show_prompt = True
+        overlay.gui.prompt = self.prompts[self.level][self.prompt_index]
+        overlay.gui.update_scale(self.scale)
         return False
     
     def uninteract(self) -> None:

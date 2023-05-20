@@ -8,19 +8,22 @@ from Scripts.ScreenElements import Button, InteractionPrompt, Options, OptionsPr
 
 class Building:
     # learn how to make buildings here: https://www.youtube.com/watch?v=jKTOGz3XAcc
-    def __init__(self, name: str, pos: tuple[float, float], img: pygame.Surface | None = None) -> None:
+    def __init__(self, name: str, pos: tuple[float, float], img_str: str | None = None) -> None:
         self.name = name
         self.unscaled_pos: tuple[float, float] = pos
         self.scale = 1
         self.scaled_pos: tuple[float, float] = pos
 
-        self.unscaled_size: tuple[float, float] = (256, 256) # set it to the size of the building sprite instead
+        self.unscaled_size: tuple[float, float] = (512, 512) # set it to the size of the building sprite instead
         self.scaled_size: tuple[float, float] = (self.unscaled_size[0]*self.scale, self.unscaled_size[1]*self.scale)
         self.colour = 0x696969
 
         self.inframe: bool = True
-        self.col_rect = pygame.Rect(self.scaled_pos, (256*self.scale, 256*self.scale))
+        self.col_rect = pygame.Rect(self.scaled_pos, self.scaled_size)
 
+        self.img = img_str
+        if self.img:
+            self.image = am.buildings[self.img]
         self.name_tag = am.normal_font[14 if len(name)>12 else 16].render(name, True, 0xFFFFFFFF)
         self.name_tag_rect = self.name_tag.get_rect()
         return None
@@ -29,17 +32,23 @@ class Building:
         rel_pos: tuple[float, float] = (self.scaled_pos[0]-cam_pos[0], self.scaled_pos[1]-cam_pos[1])
         self.col_rect.topleft = rel_pos # type: ignore
         if self.inframe:
-            pygame.draw.rect(screen, self.colour ,self.col_rect)
-            screen.blit(self.name_tag, (rel_pos[0]+self.col_rect.width/2-self.name_tag_rect.width/2, rel_pos[1]-self.name_tag_rect.height))
+            if not self.img:
+                pygame.draw.rect(screen, self.colour ,self.col_rect)
+                screen.blit(self.name_tag, (rel_pos[0]+self.col_rect.width/2-self.name_tag_rect.width/2, rel_pos[1]-self.name_tag_rect.height))
+            else:
+                screen.blit(self.image, rel_pos)
+                screen.blit(self.name_tag, (rel_pos[0]+self.col_rect.width/2-self.name_tag_rect.width/2, rel_pos[1]-self.name_tag_rect.height))
         return rel_pos
 
     def update_scale(self, scale) -> None:
         self.scale = scale
+        if self.img:
+            self.image = am.buildings[self.img]
         self.scaled_pos = self.unscaled_pos[0]*scale, self.unscaled_pos[1]*scale
         self.scaled_size = (self.unscaled_size[0]*self.scale, self.unscaled_size[1]*self.scale)
         self.name_tag = am.normal_font[14 if len(self.name)>12 else 16].render(self.name, True, 0xFFFFFFFF)
         self.name_tag_rect = self.name_tag.get_rect()
-        self.col_rect = pygame.Rect(self.scaled_pos, (256*self.scale, 256*self.scale))
+        self.col_rect = pygame.Rect(self.scaled_pos, self.scaled_size)
         return None
 
 
@@ -47,19 +56,21 @@ class SustainINC(Building):
     def __init__(self, gm, flags: dict[str, bool|int|object]) -> None:
         self.gm = gm
         self.flags = flags
-        pos = (600, 0)
-        super().__init__("SUSTAIN INC.", pos, None)
+        pos = (580, 0)
+        super().__init__("SUSTAIN INC.", pos, "SustainINC")
 
         self.interaction_radius = 400
         self.can_interact: bool = False
-        self.inframe: bool = True
-
         self.uninteracting = False
+
+        self.inframe: bool = True
 
         self.level = 0
         self.max_level = 30
         self.income = self.income_at_level(self.level)
         self.cost = math.exp(2*self.level)
+
+        self.previous_aslet_level: int = 0
 
         self.prompts: list[InteractionPrompt] = [OptionsPrompt(f"Upgrade to level {self.level+1}?")]
         self.prompt_index: int = 0
@@ -67,7 +78,7 @@ class SustainINC(Building):
         return None
     
     def income_at_level(self, lvl) -> float:
-        return math.exp(1.5*lvl) -3*self.level
+        return ((math.exp((1.5+0.0132*lvl)*lvl) -3*self.level)*(1+self.flags["investmentlevel"]*0.1)) # type: ignore
     
     def check_interact(self, player_pos) -> bool:
         if self.can_interact:
@@ -82,12 +93,18 @@ class SustainINC(Building):
     
     def interact(self) -> bool:
         """" returns whether the interactable building wants to uninteract """
-        overlay.gui.show_prompt = True
-        overlay.gui.prompt = self.prompts[self.prompt_index]
-        overlay.gui.update_scale(self.scale)
+        if self.flags["investmentlevel"] != self.previous_aslet_level: # if aslet was upgraded, reevaluate income
+            self.previous_aslet_level = self.flags["investmentlevel"] # type: ignore
+            self.income = self.income_at_level(self.level)
+            if self.level < self.max_level: self.prompts = [OptionsPrompt(f"SUSTAIN, INC\nCurrent Level: {self.level}\nCurrent Income: {overlay.format_value(int(self.income))}/s\nUpgrade to level {self.level+1}? (New income={overlay.format_value(int(self.income_at_level(self.level+1)))}/s)", Options([(f"$ {overlay.format_value(self.cost)}", self.upgrade), ("Cancel", self.uninteract)]))]
+            else: self.prompts = [OptionsPrompt(f"SUSTAIN, INC\nMax Level ({self.max_level})\nCurrent Income: {overlay.format_value(int(self.income))}/s", Options([("Cancel", self.uninteract)]))]
+        
         if self.uninteracting:
             self.uninteracting = False
             return True
+        overlay.gui.show_prompt = True
+        overlay.gui.prompt = self.prompts[self.prompt_index]
+        overlay.gui.update_scale(self.scale)
         return False
     
     def uninteract(self) -> None:
@@ -109,7 +126,7 @@ class SustainINC(Building):
             self.level += 1
             self.gm.resources -= self.cost
 
-            self.income = math.e**(3*self.level/2) - 3*self.level
+            self.income = self.income_at_level(self.level)
             self.cost = math.e**(2*self.level)
             if self.level < self.max_level: self.prompts = [OptionsPrompt(f"SUSTAIN, INC\nCurrent Level: {self.level}\nCurrent Income: {overlay.format_value(int(self.income))}/s\nUpgrade to level {self.level+1}? (New income={overlay.format_value(int(self.income_at_level(self.level+1)))}/s)", Options([(f"$ {overlay.format_value(self.cost)}", self.upgrade), ("Cancel", self.uninteract)]))]
             else: self.prompts = [OptionsPrompt(f"SUSTAIN, INC\nMax Level ({self.max_level})\nCurrent Income: {overlay.format_value(int(self.income))}/s", Options([("Cancel", self.uninteract)]))]
