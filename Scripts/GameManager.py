@@ -4,7 +4,7 @@ import os
 from Scripts.Tiles import GrassTile
 from Scripts.Camera import Camera
 from Scripts.Character import Character, Player, NPC
-from Scripts.GameCharacters import AmazonEmployee, BuffJesos, GraterThunderberg, MelonUsk, MrDani, MrFeast, MrGutters
+from Scripts.GameCharacters import SaharaEmployee, BuffJesos, GraterThunderberg, MelonUsk, MrDani, MrFeast, MrGutters, inV
 from Scripts.Building import Building, SustainINC
 import Scripts.AssetManager as am
 from Scripts.ScreenElements import InteractionPrompt, Options, OptionsPrompt
@@ -32,6 +32,7 @@ class GameManager:
             "daniconvinced": False,
             "spaceyacquired": False,
             "saharaacquired": False,
+            "finishgame": self.finish_game
         }
 
         self.debugging: bool = debugging
@@ -46,10 +47,11 @@ class GameManager:
             "Grater Thunderberg": GraterThunderberg(player_name, self.flags),
             "Mr Gutters": MrGutters(player_name, self.flags),
             "Mr Dani": MrDani(player_name, self.flags),
-            "Amazon Employee #1": AmazonEmployee(player_name, self.flags, (-200, 500)),
-            "Amazon Employee #2": AmazonEmployee(player_name, self.flags, (200, 500)),
+            "Sahara Employee #1": SaharaEmployee(player_name, self.flags, (-200, 500)),
+            "Sahara Employee #2": SaharaEmployee(player_name, self.flags, (200, 500)),
             "Buff Jesos": BuffJesos(player_name, self.flags),
-            "Mr Feast": MrFeast(player_name, self.flags)
+            "Mr Feast": MrFeast(player_name, self.flags),
+            "inV": inV(player_name, self.flags)
         }
         self.character_list: list[NPC] = [item for _, item in self.character_dict.items()] # class objects are mutable, so this is efficient to do
 
@@ -210,6 +212,10 @@ class GameManager:
             return ((col_rect.centerx - self.player.col["r"].right) - col_rect.width/2, col_rect.height/2 - (self.player.col["t"].top - col_rect.centery))
 
         return (0, 0)
+    
+    def finish_game(self) -> None:
+        print("GG SUIIIIIII")
+        return None
 
     def resize(self, game_scale) -> None:
         self.game_scale = game_scale
@@ -221,12 +227,13 @@ class GameManager:
         self.player.update_scale(game_scale, am.ben_anim)
         self.character_dict["Melon Usk"].update_scale(game_scale, am.melon_anim)
         self.character_dict["Grater Thunderberg"].update_scale(game_scale, am.grater_anim)
-        self.character_dict["Mr Gutters"].update_scale(game_scale, am.ben_anim)
-        self.character_dict["Mr Dani"].update_scale(game_scale, am.ben_anim)
-        self.character_dict["Amazon Employee #1"].update_scale(game_scale, am.ben_anim)
-        self.character_dict["Amazon Employee #2"].update_scale(game_scale, am.ben_anim)
-        self.character_dict["Buff Jesos"].update_scale(game_scale, am.ben_anim)
-        self.character_dict["Mr Feast"].update_scale(game_scale, am.ben_anim)
+        self.character_dict["Mr Gutters"].update_scale(game_scale, am.gutters_anim)
+        self.character_dict["Mr Dani"].update_scale(game_scale, am.dani_anim)
+        self.character_dict["Sahara Employee #1"].update_scale(game_scale, am.sahara_anim)
+        self.character_dict["Sahara Employee #2"].update_scale(game_scale, am.sahara_anim)
+        self.character_dict["Buff Jesos"].update_scale(game_scale, am.jesos_anim)
+        self.character_dict["Mr Feast"].update_scale(game_scale, am.feast_anim)
+        self.character_dict["inV"].update_scale(game_scale, am.inv_anim)
         
         for b in self.building_list:
             b.update_scale(game_scale)

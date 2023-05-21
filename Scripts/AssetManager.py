@@ -2,14 +2,20 @@ import pygame
 
 ben_anim: dict[str, dict[str, list[pygame.Surface]]]
 melon_anim: dict[str, dict[str, list[pygame.Surface]]]
+dani_anim: dict[str, dict[str, list[pygame.Surface]]]
+gutters_anim: dict[str, dict[str, list[pygame.Surface]]]
 grater_anim: dict[str, dict[str, list[pygame.Surface]]]
+feast_anim: dict[str, dict[str, list[pygame.Surface]]]
+jesos_anim: dict[str, dict[str, list[pygame.Surface]]]
+sahara_anim: dict[str, dict[str, list[pygame.Surface]]]
+inv_anim: dict[str, dict[str, list[pygame.Surface]]]
 grass_tile: pygame.Surface
 
 normal_font: dict[int, pygame.font.Font]
 buildings: dict[str, pygame.Surface]
 
 def load_assets(game_scale):
-    global ben_anim, melon_anim, grater_anim, grass_tile, normal_font, buildings
+    global ben_anim, dani_anim, melon_anim, gutters_anim, jesos_anim, sahara_anim, inv_anim, feast_anim, grater_anim, grass_tile, normal_font, buildings
 
     buildings = {
         "SustainINC": pygame.transform.scale(pygame.image.load("./Assets/Buildings/SustainINC.png"), (512*game_scale, 512*game_scale))
@@ -54,12 +60,12 @@ def load_assets(game_scale):
         }
     }
 
-    # melon_anim = ben_anim
     grater_left_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/Grater/left_idle_1.png"), (80*game_scale, 80*game_scale))
     grater_left_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/Grater/left_idle_2.png"), (80*game_scale, 80*game_scale))
 
     grater_right_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/Grater/right_idle_1.png"), (80*game_scale, 80*game_scale))
     grater_right_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/Grater/right_idle_2.png"), (80*game_scale, 80*game_scale))
+    
 
     grater_anim = {
         "w": {
@@ -96,6 +102,133 @@ def load_assets(game_scale):
             "idle": [melon_left_idle_1, melon_left_idle_1, melon_left_idle_2, melon_left_idle_2]
         }
     }
+
+    dani_left_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/dani/left_idle_1.png"), (80*game_scale, 80*game_scale))
+    dani_left_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/dani/left_idle_2.png"), (80*game_scale, 80*game_scale))
+
+    dani_right_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/dani/right_idle_1.png"), (80*game_scale, 80*game_scale))
+    dani_right_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/dani/right_idle_2.png"), (80*game_scale, 80*game_scale))
+    
+    dani_anim = {
+        "w": {
+            "idle": [dani_right_idle_1, dani_right_idle_1, dani_right_idle_2, dani_right_idle_2]
+        },
+        "s": {
+            "idle": [dani_left_idle_1, dani_left_idle_1, dani_left_idle_2, dani_left_idle_2]
+        },
+        "d": {
+            "idle": [dani_right_idle_1, dani_right_idle_1, dani_right_idle_2, dani_right_idle_2]
+        },
+        "a": {
+            "idle": [dani_left_idle_1, dani_left_idle_1, dani_left_idle_2, dani_left_idle_2]
+        }
+    }
+
+    gutters_left_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/gutters/left_idle_1.png"), (80*game_scale, 80*game_scale))
+    gutters_left_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/gutters/left_idle_2.png"), (80*game_scale, 80*game_scale))
+
+    gutters_right_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/gutters/right_idle_1.png"), (80*game_scale, 80*game_scale))
+    gutters_right_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/gutters/right_idle_2.png"), (80*game_scale, 80*game_scale))
+    
+    gutters_anim = {
+        "w": {
+            "idle": [gutters_right_idle_1, gutters_right_idle_1, gutters_right_idle_2, gutters_right_idle_2]
+        },
+        "s": {
+            "idle": [gutters_left_idle_1, gutters_left_idle_1, gutters_left_idle_2, gutters_left_idle_2]
+        },
+        "d": {
+            "idle": [gutters_right_idle_1, gutters_right_idle_1, gutters_right_idle_2, gutters_right_idle_2]
+        },
+        "a": {
+            "idle": [gutters_left_idle_1, gutters_left_idle_1, gutters_left_idle_2, gutters_left_idle_2]
+        }
+    }
+
+    jesos_left_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/jesos/left_idle_1.png"), (80*game_scale, 80*game_scale))
+    jesos_left_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/jesos/left_idle_2.png"), (80*game_scale, 80*game_scale))
+
+    jesos_right_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/jesos/right_idle_1.png"), (80*game_scale, 80*game_scale))
+    jesos_right_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/jesos/right_idle_2.png"), (80*game_scale, 80*game_scale))
+    
+    jesos_anim = {
+        "w": {
+            "idle": [jesos_right_idle_1, jesos_right_idle_1, jesos_right_idle_2, jesos_right_idle_2]
+        },
+        "s": {
+            "idle": [jesos_left_idle_1, jesos_left_idle_1, jesos_left_idle_2, jesos_left_idle_2]
+        },
+        "d": {
+            "idle": [jesos_right_idle_1, jesos_right_idle_1, jesos_right_idle_2, jesos_right_idle_2]
+        },
+        "a": {
+            "idle": [jesos_left_idle_1, jesos_left_idle_1, jesos_left_idle_2, jesos_left_idle_2]
+        }
+    }
+
+    feast_left_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/feast/left_idle_1.png"), (80*game_scale, 80*game_scale))
+    feast_left_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/feast/left_idle_2.png"), (80*game_scale, 80*game_scale))
+
+    feast_right_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/feast/right_idle_1.png"), (80*game_scale, 80*game_scale))
+    feast_right_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/feast/right_idle_2.png"), (80*game_scale, 80*game_scale))
+    
+    feast_anim = {
+        "w": {
+            "idle": [feast_right_idle_1, feast_right_idle_1, feast_right_idle_2, feast_right_idle_2]
+        },
+        "s": {
+            "idle": [feast_left_idle_1, feast_left_idle_1, feast_left_idle_2, feast_left_idle_2]
+        },
+        "d": {
+            "idle": [feast_right_idle_1, feast_right_idle_1, feast_right_idle_2, feast_right_idle_2]
+        },
+        "a": {
+            "idle": [feast_left_idle_1, feast_left_idle_1, feast_left_idle_2, feast_left_idle_2]
+        }
+    }
+
+    sahara_left_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/sahara/left_idle_1.png"), (80*game_scale, 80*game_scale))
+    sahara_left_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/sahara/left_idle_2.png"), (80*game_scale, 80*game_scale))
+
+    sahara_right_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/sahara/right_idle_1.png"), (80*game_scale, 80*game_scale))
+    sahara_right_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/sahara/right_idle_2.png"), (80*game_scale, 80*game_scale))
+    
+    sahara_anim = {
+        "w": {
+            "idle": [sahara_right_idle_1, sahara_right_idle_1, sahara_right_idle_2, sahara_right_idle_2]
+        },
+        "s": {
+            "idle": [sahara_left_idle_1, sahara_left_idle_1, sahara_left_idle_2, sahara_left_idle_2]
+        },
+        "d": {
+            "idle": [sahara_right_idle_1, sahara_right_idle_1, sahara_right_idle_2, sahara_right_idle_2]
+        },
+        "a": {
+            "idle": [sahara_left_idle_1, sahara_left_idle_1, sahara_left_idle_2, sahara_left_idle_2]
+        }
+    }
+
+    inv_left_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/inv/left_idle_1.png"), (80*game_scale, 80*game_scale))
+    inv_left_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/inv/left_idle_2.png"), (80*game_scale, 80*game_scale))
+
+    inv_right_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/inv/right_idle_1.png"), (80*game_scale, 80*game_scale))
+    inv_right_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/inv/right_idle_2.png"), (80*game_scale, 80*game_scale))
+    
+    inv_anim = {
+        "w": {
+            "idle": [inv_right_idle_1, inv_right_idle_1, inv_right_idle_2, inv_right_idle_2]
+        },
+        "s": {
+            "idle": [inv_left_idle_1, inv_left_idle_1, inv_left_idle_2, inv_left_idle_2]
+        },
+        "d": {
+            "idle": [inv_right_idle_1, inv_right_idle_1, inv_right_idle_2, inv_right_idle_2]
+        },
+        "a": {
+            "idle": [inv_left_idle_1, inv_left_idle_1, inv_left_idle_2, inv_left_idle_2]
+        }
+    }
+
     grass_tile = pygame.transform.scale(pygame.image.load("Assets/grass_tile_big.png"), (256*game_scale, 256*game_scale)) # animation style doesn't match
 
     normal_font = {

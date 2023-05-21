@@ -129,7 +129,7 @@ class NPC(Character):
     
     def draw(self, screen: pygame.Surface, cam_pos: tuple[float, float], tick: int = 0, debug_circle: bool = False) -> None:
         rel_pos = super().draw(screen, cam_pos, tick)
-        screen.blit(self.name_tag, (rel_pos[0]+self.rect.width/2-self.name_tag_rect.width/2, rel_pos[1]-self.name_tag_rect.height/2))
+        screen.blit(self.name_tag, (rel_pos[0]+self.rect.width/2-self.name_tag_rect.width/2, rel_pos[1]-self.name_tag_rect.height))
         if debug_circle: pygame.draw.circle(screen, 0xFFFFFF, (rel_pos[0]+self.rect.size[0]/2, rel_pos[1]+self.rect.size[1]/2), self.interaction_radius*self.scale, 1)
         return None
     
