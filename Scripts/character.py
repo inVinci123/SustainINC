@@ -70,11 +70,11 @@ class Player(Character):
         super().draw(screen, cam_pos, tick)
         self.col = {
             "tl": pygame.Rect(self.collider_rect.topleft, (8*self.scale, 8*self.scale)),
-            "l": pygame.Rect((self.collider_rect.left, self.collider_rect.centery-24*self.scale), (8*self.scale, 48*self.scale)),
+            "l": pygame.Rect((self.collider_rect.left, self.collider_rect.centery-12*self.scale), (8*self.scale, 24*self.scale)),
             "bl": pygame.Rect((self.collider_rect.left, self.collider_rect.bottom-8*self.scale), (8*self.scale, 8*self.scale)),
             "b": pygame.Rect((self.collider_rect.centerx-8*self.scale, self.collider_rect.bottom-8*self.scale), (16*self.scale, 8*self.scale)),
             "br": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.bottom-8*self.scale), (8*self.scale, 8*self.scale)),
-            "r": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.centery-24*self.scale), (8*self.scale, 48*self.scale)),
+            "r": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.centery-12*self.scale), (8*self.scale, 24*self.scale)),
             "tr": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.top), (8*self.scale, 8*self.scale)),
             "t": pygame.Rect((self.collider_rect.centerx-8*self.scale, self.collider_rect.top), (16*self.scale, 8*self.scale))
         }
@@ -84,11 +84,11 @@ class Player(Character):
         super().update_scale(scale, new_anim)
         self.col = {
             "tl": pygame.Rect(self.collider_rect.topleft, (8*self.scale, 8*self.scale)),
-            "l": pygame.Rect((self.collider_rect.left, self.collider_rect.centery-24*self.scale), (8*self.scale, 48*self.scale)),
+            "l": pygame.Rect((self.collider_rect.left, self.collider_rect.centery-12*self.scale), (8*self.scale, 24*self.scale)),
             "bl": pygame.Rect((self.collider_rect.left, self.collider_rect.bottom-8*self.scale), (8*self.scale, 8*self.scale)),
             "b": pygame.Rect((self.collider_rect.centerx-8*self.scale, self.collider_rect.bottom-8*self.scale), (16*self.scale, 8*self.scale)),
             "br": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.bottom-8*self.scale), (8*self.scale, 8*self.scale)),
-            "r": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.centery-24*self.scale), (8*self.scale, 48*self.scale)),
+            "r": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.centery-12*self.scale), (8*self.scale, 24*self.scale)),
             "tr": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.top), (8*self.scale, 8*self.scale)),
             "t": pygame.Rect((self.collider_rect.centerx-8*self.scale, self.collider_rect.top), (16*self.scale, 8*self.scale))
         }

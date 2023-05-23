@@ -1,14 +1,42 @@
 import math
-from decimal import Decimal
 import pygame
 
 import Scripts.AssetManager as am
 import Scripts.OverlayGUI as overlay
 from Scripts.ScreenElements import Button, InteractionPrompt, Options, OptionsPrompt
 
-class Building:
+class Collider:
+    def __init__(self, unscaled_pos: tuple[float, float], unscaled_size: tuple[float, float] = (512, 512)) -> None:
+        self.unscaled_pos: tuple[float, float] = unscaled_pos
+        self.scale = 1
+        self.scaled_pos: tuple[float, float] = unscaled_pos
+
+        self.unscaled_size: tuple[float, float] = unscaled_size
+        self.scaled_size: tuple[float, float] = (self.unscaled_size[0]*self.scale, self.unscaled_size[1]*self.scale)
+
+        self.inframe: bool = True
+        self.col_rect = pygame.Rect(self.scaled_pos, self.scaled_size)
+        return None
+
+    def draw(self, screen: pygame.Surface, cam_pos: tuple[float, float], debugging=False) -> tuple[float, float]:
+        rel_pos: tuple[float, float] = (self.scaled_pos[0]-cam_pos[0], self.scaled_pos[1]-cam_pos[1])
+        self.col_rect.topleft = rel_pos # type: ignore
+        if debugging:
+            pygame.draw.rect(screen, 0xFFFFFF, self.col_rect, 1)
+        return rel_pos
+
+    def update_scale(self, scale) -> None:
+        self.scale = scale
+        self.scaled_pos = self.unscaled_pos[0]*scale, self.unscaled_pos[1]*scale
+        self.scaled_size = (self.unscaled_size[0]*self.scale, self.unscaled_size[1]*self.scale)
+        self.col_rect = pygame.Rect(self.scaled_pos, self.scaled_size)
+        return None
+    
+
+class Building(Collider):
     # learn how to make buildings here: https://www.youtube.com/watch?v=jKTOGz3XAcc
     def __init__(self, name: str, pos: tuple[float, float], img_str: str | None = None) -> None:
+        """ Completely rewritten for buildings, effectively never used..."""
         self.name = name
         self.unscaled_pos: tuple[float, float] = pos
         self.scale = 1
@@ -124,6 +152,7 @@ class SustainINC(Building):
         if self.level < self.max_level:
             if self.gm.resources < self.cost: return None
             self.level += 1
+            self.flags["carboncontribution"] -= min(14, 0.75*self.level) # type: ignore
             self.gm.resources -= self.cost
 
             self.income = self.income_at_level(self.level)
@@ -156,5 +185,4 @@ class SustainINC(Building):
         self.check_upgrade()
         if debug_circle:
             pygame.draw.circle(screen, 0xFFFFFF, (rel_pos[0]+self.col_rect.size[0]/2, rel_pos[1]+self.col_rect.size[1]/2), self.interaction_radius*self.scale, 1)
-            # pygame.draw.circle(screen, 0xFFFFFF, (rel_pos[0], rel_pos[1]), self.interaction_radius*self.scale, 1)
         return None

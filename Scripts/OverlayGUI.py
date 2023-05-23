@@ -59,10 +59,20 @@ class OverlayGUI:
 
     deleted_notification = None
     refresh = False
+    prev_frame: bool = False
 
-    def draw(self, screen: pygame.Surface, deltatime=1) -> None:
+    prev_resources: float = 0
+    prev_delta_temp: float = 0
+
+    def draw(self, screen: pygame.Surface, deltatime=1, paused: bool = False) -> None:
         if self.show_prompt:
             self.prompt.draw(screen)
+            self.prev_frame = True
+        elif not paused:
+            self.prev_frame = False
+        else:
+            if self.prev_frame:
+                self.prompt.draw(screen, False)
         
         screen.blit(self.resources_bg, (10*self.scale, 10*self.scale)) 
         if self.show_global_temp: screen.blit(self.temperature_bg, (10*self.scale, 50*self.scale)) 
@@ -72,7 +82,9 @@ class OverlayGUI:
             if self.show_global_temp: self.global_temp_text.draw(screen)
         except AttributeError:
             pass
-        self.show_prompt = False
+        
+        if not paused:
+            self.show_prompt = False
 
         if self.deleted_notification != None: # check if a notification has been deleted
             self.notifications.pop(self.deleted_notification)
@@ -98,11 +110,14 @@ class OverlayGUI:
         return None
 
     def update_resources(self, val: float = 0) -> None:
+        self.prev_resources = val
         self.resources_text = Text("$ " + format_value(val), (20*self.scale, 16*self.scale), (200*self.scale, 20*self.scale), am.normal_font[18], 0xFAFAFAFA)
         return None
     
     def update_global_temp(self, val: float = 0) -> None:
-        self.global_temp_text = Text(f"Delta Temp: {val}", (20*self.scale, 56*self.scale), (200*self.scale, 20*self.scale), am.normal_font[18], 0xFAFAFAFA if val < 0.5 else (0xFFFF0000 if val < 1 else 0xFF000000))
+        self.prev_delta_temp = val
+        value = str(val)[:4]
+        self.global_temp_text = Text(f"Delta Temp: {value}", (20*self.scale, 56*self.scale), (200*self.scale, 20*self.scale), am.normal_font[18], 0xFAFAFAFA if val < 0.5 else (0xFFFF0000 if val < 1 else 0xFF000000))
         return None
     
     def add_objective(self, id: str, objective: str) -> None:
@@ -149,6 +164,8 @@ class OverlayGUI:
         self.scale = scale
         self.refresh_notifications()
         self.refresh_objectives()
+        self.update_global_temp(self.prev_delta_temp)
+        self.update_resources(self.prev_resources)
         self.prompt.update_scale(scale)
         self.resources_bg = pygame.Surface((280*scale, 30*scale))
         self.resources_bg.set_alpha(180)

@@ -5,7 +5,7 @@ from Scripts.Tiles import GrassTile
 from Scripts.Camera import Camera
 from Scripts.Character import Character, Player, NPC
 from Scripts.GameCharacters import SaharaEmployee, BuffJesos, GraterThunderberg, MelonUsk, MrDani, MrFeast, MrGutters, inV
-from Scripts.Building import Building, SustainINC
+from Scripts.Building import Building, Collider, SustainINC
 import Scripts.AssetManager as am
 from Scripts.ScreenElements import InteractionPrompt, Options, OptionsPrompt
 import Scripts.OverlayGUI as overlay
@@ -32,7 +32,8 @@ class GameManager:
             "daniconvinced": False,
             "spaceyacquired": False,
             "saharaacquired": False,
-            "finishgame": self.finish_game
+            "finishgame": self.finish_game,
+            "carboncontribution": 500
         }
 
         self.debugging: bool = debugging
@@ -47,8 +48,8 @@ class GameManager:
             "Grater Thunderberg": GraterThunderberg(player_name, self.flags),
             "Mr Gutters": MrGutters(player_name, self.flags),
             "Mr Dani": MrDani(player_name, self.flags),
-            "Sahara Employee #1": SaharaEmployee(player_name, self.flags, (-200, 500)),
-            "Sahara Employee #2": SaharaEmployee(player_name, self.flags, (200, 500)),
+            "Sahara Employee #1": SaharaEmployee(player_name, self.flags, (-250, 500)),
+            "Sahara Employee #2": SaharaEmployee(player_name, self.flags, (250, 500)),
             "Buff Jesos": BuffJesos(player_name, self.flags),
             "Mr Feast": MrFeast(player_name, self.flags),
             "inV": inV(player_name, self.flags)
@@ -60,6 +61,13 @@ class GameManager:
             "Sustain INC": self.sustain
         }
         self.building_list: list[Building] = [b for _, b in self.building_dict.items()]
+
+        self.colliders: list[Collider] = []
+
+        for col in am.colliders:
+            a = Collider((col["xpos"], col["ypos"]), (col["xsiz"], col["ysiz"]))
+            self.colliders.append(a)
+            a.update_scale(self.game_scale)
 
         self.interactables: list[SustainINC | NPC] = self.character_list + [self.sustain]
 
@@ -175,17 +183,26 @@ class GameManager:
         self.player.move(x, y)
         self.cam.update_movebox(x, y)
         
-        overlay.gui.update_resources(self.resources)
         if self.debugging: self.resources += 5*self.sustain.cost*deltatime
         else: self.resources += self.sustain.income*deltatime # type: ignore
+        overlay.gui.update_resources(self.resources)
+
+        self.global_temp += self.get_delta_temp(deltatime) # type: ignore
+        if self.global_temp >= 1.5:
+            print("took the L")
+            quit()
+        # print(self.global_temp)
         overlay.gui.update_global_temp(self.global_temp)
         return None
+    
+    def get_delta_temp(self, deltatime) -> float:
+        return max(0, self.flags["carboncontribution"]*deltatime/(600*2/3*500))
 
     def check_collisions(self) -> tuple[float, float]:
         if self.collision_cooldown:
             self.collision_cooldown -= 1
             return (0, 0)
-        checkrects = [c.collider_rect for c in self.character_list] + [b.col_rect for b in self.building_list]
+        checkrects = [c.collider_rect for c in self.character_list] + [b.col_rect for b in self.building_list] + [c.col_rect for c in self.colliders]
         index = self.player.collider_rect.collidelist(checkrects)
         if index == -1: return (0, 0)
 
@@ -235,6 +252,9 @@ class GameManager:
         self.character_dict["Mr Feast"].update_scale(game_scale, am.feast_anim)
         self.character_dict["inV"].update_scale(game_scale, am.inv_anim)
         
+        for c in self.colliders:
+            c.update_scale(game_scale)
+
         for b in self.building_list:
             b.update_scale(game_scale)
 

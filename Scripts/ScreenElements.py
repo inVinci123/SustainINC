@@ -122,6 +122,33 @@ class TextButton(Button):
         self.text.draw(screen)
         return None
 
+class CenteredTextButton(Button):
+    def __init__(self, pos, size, on_click, text: str = "Hello World!", scale = 1, inactive_colour=6974058, normal_colour=16514043, hover_colour=12829635, click_colour=10066329, text_colour=1710618) -> None:
+        super().__init__(pos, size, on_click, inactive_colour, normal_colour, hover_colour, click_colour)
+        self.str = text
+        self.scale = scale
+        self.text_colour = text_colour
+        self.inactive = False
+        try:
+            self.text_surf = am.normal_font[24].render(self.str, True, self.text_colour)
+            self.text_rect = self.text_surf.get_rect()
+            self.text_pos = (self.scaled_size[0] - self.text_rect.width/2, self.scaled_size[1] - self.text_rect.height/2)
+        except AttributeError:
+            pass
+        return None
+    
+    def update_scale(self, scale) -> None:
+        super().update_scale(scale)
+        self.text_surf = am.normal_font[24].render(self.str, True, self.text_colour)
+        self.text_rect = self.text_surf.get_rect()
+        self.text_pos = (self.scaled_pos[0] + self.scaled_size[0]/2 - self.text_rect.width/2, self.scaled_pos[1] + self.scaled_size[1]/2 - self.text_rect.height/2)
+        # fix this ^^^
+        return None
+    
+    def draw(self, screen: pygame.Surface, check: bool = True) -> None:
+        super().draw(screen, check and not self.inactive)
+        screen.blit(self.text_surf, self.text_pos)
+        return None
 
 class Text:
     def __init__(self, text: str, scaled_pos: tuple[float, float], text_box_size: tuple[float, float], font: pygame.font.Font, colour = 0x1A1A1A) -> None:
@@ -205,7 +232,7 @@ class InteractionPrompt:
         self.transparent_surf.set_alpha(180)
         return None
     
-    def draw(self, screen) -> None:
+    def draw(self, screen, check=True) -> None:
         screen.blit(self.transparent_surf, self.scaled_pos)
         self.text_box.draw(screen)
         return None
@@ -246,7 +273,7 @@ class OptionsPrompt(InteractionPrompt):
         self.opts.update_scale(scale)
         return None
     
-    def draw(self, screen) -> None:
+    def draw(self, screen, check=True) -> None:
         super().draw(screen)
-        self.opts.draw(screen)
+        self.opts.draw(screen, check)
         return None

@@ -1,4 +1,4 @@
-import pygame
+import pygame, json
 
 ben_anim: dict[str, dict[str, list[pygame.Surface]]]
 melon_anim: dict[str, dict[str, list[pygame.Surface]]]
@@ -14,8 +14,18 @@ grass_tile: pygame.Surface
 normal_font: dict[int, pygame.font.Font]
 buildings: dict[str, pygame.Surface]
 
+gallet_city: pygame.Surface
+
+
+# load_colliders
+with open("./Assets/collider_data.json", "r") as col_data:
+    colliders = json.load(col_data)["colliders"]
+print(colliders)
+
 def load_assets(game_scale):
-    global ben_anim, dani_anim, melon_anim, gutters_anim, jesos_anim, sahara_anim, inv_anim, feast_anim, grater_anim, grass_tile, normal_font, buildings
+    global ben_anim, dani_anim, melon_anim, gutters_anim, jesos_anim, sahara_anim, inv_anim, feast_anim, grater_anim, grass_tile, normal_font, buildings, gallet_city
+
+    gallet_city = pygame.transform.scale(pygame.image.load("./Assets/gallet_city.png"), (5120*game_scale, 5120*game_scale))
 
     buildings = {
         "SustainINC": pygame.transform.scale(pygame.image.load("./Assets/Buildings/SustainINC.png"), (512*game_scale, 512*game_scale))
@@ -238,6 +248,8 @@ def load_assets(game_scale):
         16: pygame.font.Font("Assets/Fonts/ApercuMonoProMedium.ttf", int(16*game_scale)),
         18: pygame.font.Font("Assets/Fonts/ApercuMonoProMedium.ttf", int(18*game_scale)),
         24: pygame.font.Font("Assets/Fonts/ApercuMonoProMedium.ttf", int(24*game_scale)),
+        30: pygame.font.Font("Assets/Fonts/ApercuMonoProMedium.ttf", int(30*game_scale)),
+        50: pygame.font.Font("Assets/Fonts/ApercuMonoProMedium.ttf", int(50*game_scale)),
     }
 
 # IMAGES INSPIRED FROM DREAM STUDIO AND DALLE

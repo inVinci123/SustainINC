@@ -1,0 +1,32 @@
+{
+    "colliders": [
+        {
+            "comment": "top world collider",
+            "xpos": -2560,
+            "ypos": -390,
+            "xsiz": 5120,
+            "ysiz": 50
+        },
+        {
+            "comment": "right world collider",
+            "xpos": 2560,
+            "ypos": -390,
+            "xsiz": 50,
+            "ysiz": 2950
+        },
+        {
+            "comment": "left world collider",
+            "xpos": -2560,
+            "ypos": -390,
+            "xsiz": 50,
+            "ysiz": 2950
+        },
+        {
+            "comment": "bottom world collider",
+            "xpos": -2560,
+            "ypos": 2560,
+            "xsiz": 5120,
+            "ysiz": 50
+        }
+    ]
+}

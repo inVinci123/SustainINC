@@ -24,7 +24,7 @@ class MelonUsk(NPC):
             ],
             [ # lvl 2
                 InteractionPrompt("MELON USK: Awesome, it may take a while to completely upgrade your business, but we will get there. For now, let's begin saving the world..."),
-                InteractionPrompt("Since you are new here, I must explain the rules to you. In order to make connections, you must get a reference to the person.\n Without one, they will get cranky. Like my friend Buff in Buffville, he will only talk to you if you have been referred to..."),
+                InteractionPrompt("Since you are new here, I must explain the rules to you. In order to make connections, you must get a reference to the person.\n Without one, they will get cranky..."),
                 OptionsPrompt("For now, go talk to Grater Thunderberg, they have some interesting projects you might be interested in.", Options([("Let's Go!", self.uninteract)]))
             ],
             [ # lvl 3
@@ -83,9 +83,13 @@ class MelonUsk(NPC):
             self.prompt_index = 0
             self.level = 6
             self.flags["investmentlevel"] = 1
+            self.flags["carboncontribution"] -= 15 # type: ignore
+            overlay.gui.push_notification("Global Carbon Footprint improved!")
             overlay.gui.push_notification("Income increased by 10%", "info")
         elif self.level == 11:
             self.flags["investmentlevel"] += 1 # type: ignore
+            self.flags["carboncontribution"] -= 30 # type: ignore
+            overlay.gui.push_notification("Global Carbon Footprint improved!")
             overlay.gui.push_notification("Income increased by 10%", "info")
             self.level = 12
             self.prompt_index = 0
@@ -161,13 +165,15 @@ class MelonUsk(NPC):
         elif self.level == 8:
             if overlay.gui.check_objective("getspaceyfromusk"):
                 overlay.gui.remove_objective("getspaceyfromusk")
-            self.flags["spaceyacquired"] = True
-            overlay.gui.push_notification("SpaceY acquired", "info")
+                self.flags["spaceyacquired"] = True
+                overlay.gui.push_notification("SpaceY acquired", "info")
         elif self.level == 9:
             if overlay.gui.check_objective("convinceuskfordani"):
                 overlay.gui.remove_objective("convinceuskfordani")
         elif self.level == 13:
             self.level = 14
+            self.flags["carboncontribution"] -= 30 # type: ignore
+            overlay.gui.push_notification("Global Carbon Footprint improved!")
             if overlay.gui.check_objective("telluskaboutthegame"):
                 overlay.gui.remove_objective("telluskaboutthegame")
             if not overlay.gui.check_objective("telljesosaboutthegame") and not overlay.gui.check_objective("tellfeastaboutthegame"):
@@ -197,15 +203,16 @@ class GraterThunderberg(NPC):
                 OptionsPrompt("Mr Usk has also been upto some interesting projects lately.", Options([("See you around!", self.uninteract)]))
             ],
             [ # lvl 3
-                OptionsPrompt(f"Fridays for Future!", Options([("Leave", self.uninteract)]))
+                OptionsPrompt(f"GRETA THUNDERBERG: Fridays for Future!", Options([("Leave", self.uninteract)]))
             ]
         ]
         return None
     
     def spend_money(self, amount) -> None:
         self.flags["spendresources"](amount) # type: ignore
-        overlay.gui.push_notification(f"Spent dolla {amount}", "info")
         if self.level == 1:
+            self.flags["carboncontribution"] -= 30 # type: ignore
+            overlay.gui.push_notification("Global Carbon Footprint improved!")
             self.prompt_index = 0
             self.level += 1
             self.flags["donatetoun"] = True
@@ -262,7 +269,7 @@ class MrGutters(NPC):
                 OptionsPrompt("I shall now assign you to your first mission. Mr Dani, an Asian mining and energy tycoon has had a negative impact on the climate.\nConvince him to transition into sustainable energy.", Options([("Right away!", self.uninteract)]))
             ],
             [ # lvl 3
-                InteractionPrompt("MR GUTTERS: Obrigado! We have improved the rate of global warming. But did you know the world meteorological organisation predicted that there is a 66% chance we are gonna break the 1.5C limit.\n We don't have any time to be sitting around, so here's your second mission."),
+                InteractionPrompt("MR GUTTERS: Obrigado! We have dented the rate of global warming. But did you know the world meteorological organisation predicted that there is a 66% chance we are gonna break the 1.5C limit?\n We don't have any time to be sitting around, so here's your second mission..."),
                 InteractionPrompt("Greenpeace is an international organisation focused on ensuring the ability of Earth to nurture life in all it's diversity. We wish to involve prominent public figures. Convince Mr Usk, Mr Jesos, and Mr Feast to join the green side!"),
                 InteractionPrompt(f"{self.player_name}: DID YOU SAY MR FEAST! I'M A BIG FAN."),
                 OptionsPrompt("MR GUTTERS: Go do it!", Options([("Let's Go!", self.uninteract)]))
@@ -322,6 +329,8 @@ class MrGutters(NPC):
         elif self.level in [5, 6] and overlay.gui.check_objective("reportfinaldone"):
             overlay.gui.remove_objective("reportfinaldone")
             self.level = 7
+            self.flags["carboncontribution"] = 0 # type: ignore
+            overlay.gui.push_notification("Global Carbon Footprint set to 0!")
         return super().interact()
     
     def uninteract(self) -> None:
@@ -391,7 +400,7 @@ class MrDani(NPC):
             self.investment_amount = max(3*math.exp(2*self.flags['sustainlevel']), self.investment_amount) # type: ignore
             self.prompts[1][3] = OptionsPrompt(f"I see where you are going with this, young mate. I'll consider it if you are willing to invest $ {overlay.format_value(self.investment_amount)} into this", Options([(f"$ {overlay.format_value(self.investment_amount)}", lambda : self.spend_money(self.investment_amount)), ("Not now", self.uninteract)]))
             self.prompts[2][0] = OptionsPrompt("MR DANI: I'll consider switching if you are willing to invest $1M into this", Options([(f"$ {overlay.format_value(self.investment_amount)}", lambda : self.spend_money(self.investment_amount)), ("Not now", self.uninteract)]))
-        elif self.level in (1,2):
+        elif self.level in (1, 2):
             if self.flags["getresources"]() < self.investment_amount: # type: ignore
                 self.prompts[1][3].opts.options[0].inactive = True # type: ignore
                 self.prompts[2][0].opts.options[0].inactive = True # type: ignore
@@ -400,6 +409,8 @@ class MrDani(NPC):
                 self.prompts[2][0].opts.options[0].inactive = False # type: ignore
         elif self.level == 3:
             if not overlay.gui.check_objective("convinceuskfordani") and self.flags["spaceyacquired"]: # additional condition to avoid a weird bug
+                self.flags["carboncontribution"] -= 80 # type: ignore
+                overlay.gui.push_notification("Global Carbon Footprint improved!")
                 self.level = 4
                 self.flags["daniconvinced"] = True
 
@@ -410,8 +421,6 @@ class MrDani(NPC):
             overlay.gui.add_objective("convinceuskfordani", "Convince Melon Usk")
         if self.level == 4:
             self.level = 5
-            self.carbon_contribution -= 20 # half the carbon contribution
-            overlay.gui.push_notification("Carbon contribution improved!")
             if overlay.gui.check_objective("convincedani"):
                 overlay.gui.remove_objective("convincedani")
         return super().uninteract()
@@ -499,6 +508,8 @@ class BuffJesos(NPC):
             overlay.gui.push_notification("Income increased by 10%", "info")
             return None
         if self.level == 6:
+            self.flags["carboncontribution"] -= 80 # type: ignore
+            overlay.gui.push_notification("Global Carbon Footprint improved!")
             self.level = 7
             self.prompt_index = 0
             self.flags["investmentlevel"] += 1 # type: ignore
@@ -636,8 +647,11 @@ class MrFeast(NPC):
         if self.level in [0, 1]:
             self.level += 1
             self.prompt_index = 0
+            overlay.gui.push_notification("Earnt 50k!")
             return None
         elif self.level in [3, 4]:
+            self.flags["carboncontribution"] -= 35 # type: ignore
+            overlay.gui.push_notification("Global Carbon Footprint improved!")
             self.level = 5
             self.prompt_index = 0
             return None
@@ -669,6 +683,8 @@ class MrFeast(NPC):
             if overlay.gui.check_objective("convincefeasttogogreen"):
                 overlay.gui.remove_objective("convincefeasttogogreen")
         elif self.level == 6:
+            self.flags["carboncontribution"] -= 40 # type: ignore
+            overlay.gui.push_notification("Global Carbon Footprint improved!")
             if overlay.gui.check_objective("tellfeastaboutthegame"):
                 overlay.gui.remove_objective("tellfeastaboutthegame")
             if not overlay.gui.check_objective("telljesosaboutthegame") and not overlay.gui.check_objective("telluskaboutthegame"):
@@ -681,10 +697,10 @@ class inV(NPC):
         self.flags = flags
         self.player_name = player_name
         self.investment_amount = 25e9
-        super().__init__(anim=am.inv_anim, pos=(20, 600), name="inV", prompts=[])
+        super().__init__(anim=am.inv_anim, pos=(20, 750), name="inV", prompts=[])
         self.prompts = [
             [ # lvl 0
-                OptionsPrompt("inV: Busy in developing a game. Come back later!", Options([("Leave", self.uninteract)]))
+                OptionsPrompt("inV: Busy developing a game. Come back later!", Options([("Leave", self.uninteract)]))
             ],
             [ # lvl 1
                 InteractionPrompt(f"{self.player_name}: Hello inV! I hear you are developing a game called Sustain, Inc.!"),
@@ -708,6 +724,8 @@ class inV(NPC):
         if self.level in [1, 2]:
             self.level = 3
             self.prompt_index = 0
+            self.flags["carboncontribution"] -= 30 # type: ignore
+            overlay.gui.push_notification("Global Carbon Footprint improved!")
             return None
         self.uninteract()
         return None

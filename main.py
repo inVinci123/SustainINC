@@ -8,6 +8,8 @@ from Scripts.Camera import Camera
 from Scripts.Tiles import GrassTile
 from Scripts.ScreenElements import Button, Text, InteractionPrompt
 import Scripts.OverlayGUI as overlay
+from Scripts.Screen import PauseScreen
+from Scripts.GalletCity import GalletCity
 
 import sys
 
@@ -62,6 +64,16 @@ overlay.gui.push_notification("Game started in debugging mode" if debugging else
 overlay.gui.add_objective("firstinteract", "Interact with Melon Usk")
 overlay.gui.refresh_objectives()
 
+paused: bool = False
+
+def close_pause_menu() -> None:
+    global paused
+    paused = False
+    return None
+
+p = PauseScreen(game_scale, close_pause_menu)
+bg = GalletCity()
+bg.update_scale(game_scale)
 def draw_game_screen() -> None:
     # draw the game screen on the main window
     global anim_tick, ben_idle, running_time, game_screen
@@ -71,9 +83,11 @@ def draw_game_screen() -> None:
     running_time += deltatime*1000
     game_screen.fill(BG)
 
-    for tile in gm.grass_tiles:
-        tile.draw(game_screen, gm.cam.cam_pos, anim_tick)
-    gm.evaluate_game_screen(deltatime)
+    # for tile in gm.grass_tiles:
+    #     tile.draw(game_screen, gm.cam.cam_pos, anim_tick)
+    bg.draw(game_screen, gm.cam.cam_pos)
+    
+    if not paused: gm.evaluate_game_screen(deltatime)
     gm.player.draw(game_screen, gm.cam.cam_pos, anim_tick, gm.walking)
     # test_button.draw(game_screen)
     if debugging:
@@ -81,16 +95,15 @@ def draw_game_screen() -> None:
         pygame.draw.rect(game_screen, 0xFFFFFF, gm.player.collider_rect, 1)
         pygame.draw.rect(game_screen, 0xFFFFFF, gm.player.rect, 1)
         for key in gm.player.col.keys():
-            pygame.draw.rect(game_screen, 0xFFFFFF, gm.player.col[key], 1)
+            pygame.draw.rect(game_screen, 0xFFFFFF, gm.player.col[key], 1)            
 
         # other character colliders
         for c in gm.character_list:
             pygame.draw.rect(game_screen, 0xFFFFFF, c.collider_rect, 1)
-        # pygame.draw.rect(game_screen, 0xFFFFFF, gm.test_character.collider_rect, 1)
-        # pygame.draw.rect(game_screen, 0xFFFFFF, gm.melon_usk.collider_rect, 1)
-        # pygame.draw.rect(game_screen, 0xFFFFFF, gm.grater_thunderberg.collider_rect, 1)
-        # pygame.draw.rect(game_screen, 0xFFFFFF, gm.test_character2.collider_rect, 1)
-        # pygame.draw.rect(game_screen, 0xFFFFFF, gm.test_character3.collider_rect, 1)
+    
+    # draw the colliders (still need to do that to update their position)
+    for col in gm.colliders:
+        col.draw(game_screen, gm.cam.cam_pos, debugging)
 
     for c in gm.character_list:
         c.draw(game_screen, gm.cam.cam_pos, anim_tick, debugging)
@@ -104,9 +117,11 @@ def draw_game_screen() -> None:
     # drawing the move box for debugging
     if debugging: pygame.draw.rect(game_screen, 0xFFFFFF, pygame.Rect((game_scale*1280/2-gm.cam.movebox_lim[0], game_scale*720/2-gm.cam.movebox_lim[1]), (2*gm.cam.movebox_lim[0], 2*gm.cam.movebox_lim[1])), 1)
 
-    anim_tick = int(running_time/200)%4 # precisely callibrated to work with the animation rate
-
-    overlay.gui.draw(game_screen, deltatime)
+    overlay.gui.draw(game_screen, deltatime, paused)
+    if not paused: anim_tick = int(running_time/200)%4 # precisely callibrated to work with the animation rate
+    else:
+        p.update_data(int(running_time/1000), gm.get_delta_temp(1))
+        p.draw(game_screen)
     window.blit(game_screen, ((L-game_scale*1280)/2, (H-game_scale*720)/2))
 
     pos_text = am.normal_font[18].render(f"Pos: {int(gm.player.unscaled_pos[0]), int(gm.player.unscaled_pos[1])}", True, 0xFFFFFF)
@@ -138,14 +153,15 @@ def on_resize() -> None:
     window = pygame.display.set_mode((L, H), pygame.RESIZABLE)
     game_screen = pygame.Surface((game_scale*1280, game_scale*720))
     overlay.gui.update_scale(game_scale)
-
-    print("dimensions changed to ", L, H)
+    p.update_scale(game_scale)
+    p.update_data(int(running_time/1000), gm.get_delta_temp(1))
+    bg.update_scale(game_scale)
     return None
 
 
 def process_inputs(events: list[pygame.event.Event]) -> bool:
     """ Process the events/inputs provided by the user, return whether the app should keep running """
-    global L, H, walking, anim_dir
+    global L, H, walking, anim_dir, paused
     keys_pressed = pygame.key.get_pressed()
     running = True
     for e in events:
@@ -155,17 +171,21 @@ def process_inputs(events: list[pygame.event.Event]) -> bool:
             if e.key == pygame.K_l:
                 # emergency quit (TODO: Remove this)
                 running = False
+            if e.key == pygame.K_ESCAPE:
+                # updating the pause screen data every time it is unpaused
+                paused = not paused
             if e.key == pygame.K_SPACE:
-                if gm.player_interacting:
-                    if not gm.player.interaction_character.next_dialogue(): # type: ignore
-                        gm.player_interacting = False
-                        gm.movement_enabled = True
-                elif gm.player.can_interact:
-                    if gm.player.interaction_character != None:
-                        gm.player.interaction_character.interact()
-                        # overlay.gui.push_notification("Interacting with " + gm.player.interaction_character.name)
-                    gm.player_interacting = True
-                    gm.movement_enabled = False
+                if not paused:
+                    if gm.player_interacting:
+                        if not gm.player.interaction_character.next_dialogue(): # type: ignore
+                            gm.player_interacting = False
+                            gm.movement_enabled = True
+                    elif gm.player.can_interact:
+                        if gm.player.interaction_character != None:
+                            gm.player.interaction_character.interact()
+                            # overlay.gui.push_notification("Interacting with " + gm.player.interaction_character.name)
+                        gm.player_interacting = True
+                        gm.movement_enabled = False
             if debugging:
                 if e.key == pygame.K_LSHIFT:
                     gm.speed = gm.fast_speed
@@ -177,7 +197,7 @@ def process_inputs(events: list[pygame.event.Event]) -> bool:
             L, H = window.get_size()
             on_resize()
 
-    if gm.movement_enabled:
+    if gm.movement_enabled and not paused:
         gm.walking = False
         # vertical input
         if not ((keys_pressed[pygame.K_w] or keys_pressed[pygame.K_UP]) and (keys_pressed[pygame.K_s] or keys_pressed[pygame.K_DOWN])): # check for contradictory key presses
