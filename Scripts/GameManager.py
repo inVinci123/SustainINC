@@ -12,7 +12,11 @@ import Scripts.OverlayGUI as overlay
 
 
 class GameManager:
-    def __init__(self, game_scale: float, debugging: bool = False, player_name: str = "Ben the Brave") -> None:
+    def __init__(self, game_scale) -> None:
+        am.load_assets(game_scale)
+        return None
+    
+    def post_init(self, game_scale: float, debugging: bool = False, player_name: str = "Player") -> None:
         am.load_assets(game_scale)
 
         # a dictionary of global variables/flags keeping track of whether in game events have occured or not
@@ -41,7 +45,6 @@ class GameManager:
         self.game_scale = game_scale
         self.ben_anim: dict = am.ben_anim
         
-
         # need it to be standalone
         self.sustain = SustainINC(self, self.flags)
         
@@ -71,9 +74,11 @@ class GameManager:
             a.update_scale(self.game_scale)
         
         self.extra_colliders = [ # LEAVE THESE ENABLED UNTIL MELON USK HAS BEEN TALKED TO
-            Collider((-520, 2030), (120, 250)),
-            Collider((0, 2050), (120, 250))
+            Collider((-520, 2280), (120, 250)),
+            Collider((0, 2300), (120, 250))
         ]
+        for c in self.extra_colliders:
+            c.update_scale(self.game_scale)
 
         self.interactables: list[SustainINC | NPC] = self.character_list + [self.sustain]
 
@@ -95,6 +100,7 @@ class GameManager:
         # self.car_mode: bool = False
 
         self.player = Player((-365, 2330))
+        self.player.name = player_name
         self.player.update_scale(game_scale)
 
         self.resources: float = 0
@@ -143,9 +149,14 @@ class GameManager:
             self.anim_dir = "d"
         elif self.move_dir[0] == -1:
             self.anim_dir = "a"
+
         if self.walking:
-            self.player.move(self.move_dir[0]*self.speed*deltatime, self.move_dir[1]*self.speed*deltatime, self.anim_dir)
-            self.cam.update_movebox(self.move_dir[0]*self.speed*deltatime, self.move_dir[1]*self.speed*deltatime)
+            if self.move_dir[0] != 0 and self.move_dir[1] != 0:
+                self.player.move(self.move_dir[0]*self.speed*deltatime/(2**0.5), self.move_dir[1]*self.speed*deltatime/(2**0.5), self.anim_dir)
+                self.cam.update_movebox(self.move_dir[0]*self.speed*deltatime/(2**0.5), self.move_dir[1]*self.speed*deltatime/(2**0.5))
+            else:
+                self.player.move(self.move_dir[0]*self.speed*deltatime, self.move_dir[1]*self.speed*deltatime, self.anim_dir)
+                self.cam.update_movebox(self.move_dir[0]*self.speed*deltatime, self.move_dir[1]*self.speed*deltatime)
         # if self.walking:
         #     if self.anim_dir == "w":
         #         self.player.move(0, -self.speed*deltatime, self.anim_dir)
@@ -318,7 +329,7 @@ class GameManager:
         self.character_dict["Mr Feast"].update_scale(game_scale, am.feast_anim)
         self.character_dict["inV"].update_scale(game_scale, am.inv_anim)
         
-        for c in self.colliders+self.extra_colliders:
+        for c in (self.colliders+self.extra_colliders):
             c.update_scale(game_scale)
 
         for b in self.building_list:

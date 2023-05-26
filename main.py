@@ -2,13 +2,14 @@ import pygame
 
 from Scripts.GameManager import GameManager
 import Scripts.AssetManager as am
+import Scripts.AudioManager as audio
 from Scripts.Character import Character, Player, NPC
 from Scripts.Building import SustainINC
 from Scripts.Camera import Camera
 from Scripts.Tiles import GrassTile
 from Scripts.ScreenElements import Button, Text, InteractionPrompt
 import Scripts.OverlayGUI as overlay
-from Scripts.Screen import PauseScreen
+from Scripts.Screen import PauseScreen, StartScreen
 from Scripts.GalletCity import GalletCity
 
 import sys
@@ -55,10 +56,11 @@ deltatime: float = 0
 # test_button = Button((L/2, H/2), (100, 20), lambda : print("Hello World!"))
 txt_rect = pygame.Rect((69, 69), (40, 80))
 
-gm = GameManager(game_scale, debugging)
+gm = GameManager(game_scale)
+start_menu: bool = True
+# gm.post_init(game_scale, debugging)
 
 overlay.gui = overlay.OverlayGUI()
-overlay.gui.update_scale(game_scale)
 
 overlay.gui.push_notification("Game started in debugging mode" if debugging else "Game started.", "info")
 overlay.gui.add_objective("firstinteract", "Interact with Melon Usk")
@@ -71,17 +73,43 @@ def close_pause_menu() -> None:
     paused = False
     return None
 
-p = PauseScreen(game_scale, close_pause_menu)
+
+def start_game(player_name="Player") -> None:
+    global start_menu, running_time, gm
+    gm.post_init(game_scale, debugging, player_name)
+    overlay.gui.update_scale(game_scale, gm.character_list+[gm.player])
+    running_time = 0
+    start_menu = False
+    on_resize() # update everything to the scale just in case
+    return None
+
+running = True
+def quit_game() -> None:
+    global running
+    running = False
+    return None
+
+p = PauseScreen(game_scale, close_pause_menu, quit_game)
+s = StartScreen(game_scale, start_game, quit_game)
 bg = GalletCity()
 bg.update_scale(game_scale)
+
 def draw_game_screen() -> None:
     # draw the game screen on the main window
     global anim_tick, ben_idle, running_time, game_screen
     fps = clock.get_fps()
     fps_text = am.normal_font[24].render(f"FPS: {int(fps)}", True, 0xFFFFFF)
-
-    running_time += deltatime*1000
+    audio.loop()
     game_screen.fill(BG)
+    if start_menu:
+        s.draw(game_screen)
+        window.blit(game_screen, ((L-game_scale*1280)/2, (H-game_scale*720)/2))
+        if debugging:
+            l, h = fps_text.get_rect().size
+            window.blit(fps_text, (L-(l+10), 10))
+        return None
+    
+    running_time += deltatime*1000
 
     # for tile in gm.grass_tiles:
     #     tile.draw(game_screen, gm.cam.cam_pos, anim_tick)
@@ -145,13 +173,16 @@ def on_resize() -> None:
         game_scale = H/720
     else:
         game_scale = L/1280
-    
+    if start_menu: am.load_assets(game_scale)
+    s.update_scale(game_scale)
+    window = pygame.display.set_mode((L, H), pygame.RESIZABLE)
+    game_screen = pygame.Surface((game_scale*1280, game_scale*720))
+
+    if start_menu: return None
     gm.resize(game_scale)
     
     # recreate the window and the game_screen with new dimensions
-    window = pygame.display.set_mode((L, H), pygame.RESIZABLE)
-    game_screen = pygame.Surface((game_scale*1280, game_scale*720))
-    overlay.gui.update_scale(game_scale)
+    overlay.gui.update_scale(game_scale, gm.character_list+[gm.player])
     p.update_scale(game_scale)
     p.update_data(int(running_time/1000), gm.get_delta_temp(1))
     bg.update_scale(game_scale)
@@ -163,29 +194,42 @@ def process_inputs(events: list[pygame.event.Event]) -> bool:
     global L, H, walking, anim_dir, paused
     keys_pressed = pygame.key.get_pressed()
     running = True
+    if start_menu:
+        for e in events:
+            if e.type == pygame.VIDEORESIZE:
+            # if the screen is resized, update everything to the new size
+                L, H = window.get_size()
+                on_resize()
+            if e.type == pygame.QUIT:
+                running = False
+        s.process_inputs(keys_pressed)
+        return running
+    
+    # process inputs for the game
     for e in events:
         if e.type == pygame.QUIT:
             running = False
         if e.type == pygame.KEYDOWN:
-            if e.key == pygame.K_l:
-                # emergency quit (TODO: Remove this)
-                running = False
             if e.key == pygame.K_ESCAPE:
                 # updating the pause screen data every time it is unpaused
                 paused = not paused
+                p.update_ps_audio_values() # update the optiosn of the pause screen if this is triggered
+            if e.key == pygame.K_m:
+                if not paused:
+                    overlay.gui.update_scale(game_scale)
+                    if not gm.player_interacting: gm.movement_enabled = not overlay.gui.trigger_map()
             # if e.key == pygame.K_x:
             #     if gm.movement_enabled and gm.flags["hascar"]:
             #         gm.car_mode = not gm.car_mode
             #         overlay.gui.push_notification("Driving mode" if gm.car_mode else "Walking mode", "info")
             if e.key == pygame.K_SPACE:
-                if not paused:
+                if not paused and not overlay.gui.show_map:
                     if gm.player_interacting:
                         try:
                             if not gm.player.interaction_character.next_dialogue(): # type: ignore
                                 gm.player_interacting = False
                                 gm.movement_enabled = True
                         except AttributeError: # if some weird glitch occurs (rare), cancel the interaction
-                            print("GLITCH CAUGHT IN EXCEPTION")
                             gm.player_interacting = False
                             gm.movement_enabled = True
                             overlay.gui.show_prompt = False
@@ -233,7 +277,7 @@ def process_inputs(events: list[pygame.event.Event]) -> bool:
 
 def main() -> None:
     """ Main loop where the application runs """
-    global L, H, deltatime
+    global L, H, deltatime, running
     running = True
     while running:
         window.fill(BLACK)

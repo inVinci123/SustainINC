@@ -7,6 +7,7 @@ from Scripts.ScreenElements import InteractionPrompt, Options, OptionsPrompt
 class Character():
     def __init__(self, anim: dict[str, dict[str, list[pygame.Surface]]], pos: tuple[float, float]) -> None:
         self.anim = anim
+        self.name: str = ""
         self.anim_state = "idle"
         self.anim_dir = "s"
         self.unscaled_pos: tuple[float, float] = pos

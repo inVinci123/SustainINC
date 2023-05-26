@@ -20,7 +20,6 @@ gallet_city: pygame.Surface
 # load_colliders
 with open("./Assets/collider_data.json", "r") as col_data:
     colliders = json.load(col_data)["colliders"]
-print(colliders)
 
 def load_assets(game_scale):
     global ben_anim, dani_anim, melon_anim, gutters_anim, jesos_anim, sahara_anim, inv_anim, feast_anim, grater_anim, grass_tile, normal_font, buildings, gallet_city
@@ -268,6 +267,7 @@ def load_assets(game_scale):
         24: pygame.font.Font("Assets/Fonts/ApercuMonoProMedium.ttf", int(24*game_scale)),
         30: pygame.font.Font("Assets/Fonts/ApercuMonoProMedium.ttf", int(30*game_scale)),
         50: pygame.font.Font("Assets/Fonts/ApercuMonoProMedium.ttf", int(50*game_scale)),
+        64: pygame.font.Font("Assets/Fonts/ApercuMonoProMedium.ttf", int(64*game_scale))
     }
 
 # IMAGES INSPIRED FROM DREAM STUDIO AND DALLE

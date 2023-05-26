@@ -63,6 +63,23 @@ class OverlayGUI:
 
     prev_resources: float = 0
     prev_delta_temp: float = 0
+    show_map: bool = False
+    characters: list = []
+    name_tags: list = []
+
+    try:
+        map = pygame.transform.scale(am.gallet_city, (768, 768))
+    except AttributeError:
+        map: pygame.Surface
+        pass
+    map_bg = pygame.Surface((1280, 720))
+    map_bg.fill(0x00000000)
+    map_bg.set_alpha(200)
+    try:
+        map_text = am.normal_font[50].render("GAME MAP", True, 0xFFFFFFFF)
+        map_text_pos = (640*scale-map_text.get_width()/2 , 60*scale)
+    except AttributeError:
+        pass
 
     def draw(self, screen: pygame.Surface, deltatime=1, paused: bool = False) -> None:
         if self.show_prompt:
@@ -73,6 +90,16 @@ class OverlayGUI:
         else:
             if self.prev_frame:
                 self.prompt.draw(screen, False)
+
+        if not paused:
+            self.show_prompt = False
+            if self.show_map:
+                screen.blit(self.map_bg, (0, 0))
+                screen.blit(self.map_text, self.map_text_pos)
+                for tag in self.name_tags:
+                    print(tag)
+                    self.map.blit(tag[0], tag[1])
+                screen.blit(self.map, (640*self.scale-384*self.scale, 360*self.scale-490*self.scale))
         
         screen.blit(self.resources_bg, (10*self.scale, 10*self.scale)) 
         if self.show_global_temp: screen.blit(self.temperature_bg, (10*self.scale, 50*self.scale)) 
@@ -82,9 +109,6 @@ class OverlayGUI:
             if self.show_global_temp: self.global_temp_text.draw(screen)
         except AttributeError:
             pass
-        
-        if not paused:
-            self.show_prompt = False
 
         if self.deleted_notification != None: # check if a notification has been deleted
             self.notifications.pop(self.deleted_notification)
@@ -145,7 +169,6 @@ class OverlayGUI:
         self.objectives_bg.fill(0x000000)
         self.objectives_bg.set_alpha(100)
         self.objectives_text = Text("Objectives", (20*self.scale, 120*self.scale), (650*self.scale, 40*self.scale), am.normal_font[24], 0xF9F9F9F9)
-
         return None
     
     def refresh_notifications(self) -> None:
@@ -160,20 +183,47 @@ class OverlayGUI:
         self.refresh_notifications()
         return None
 
-    def update_scale(self, scale) -> None:
+    def update_scale(self, scale, characters=None) -> None:
         self.scale = scale
+
         self.refresh_notifications()
         self.refresh_objectives()
+
         self.update_global_temp(self.prev_delta_temp)
         self.update_resources(self.prev_resources)
+
         self.prompt.update_scale(scale)
+
         self.resources_bg = pygame.Surface((280*scale, 30*scale))
         self.resources_bg.set_alpha(180)
         self.resources_bg.fill(0x121212)
+
         self.temperature_bg = pygame.Surface((280*scale, 30*scale))
         self.temperature_bg.set_alpha(180)
         self.temperature_bg.fill(0x121212)
+
+        self.map_bg = pygame.Surface((1280*scale, 720*scale))
+        self.map_bg.fill(0x00000000)
+        self.map_bg.set_alpha(200)
+
+        self.map = pygame.transform.scale(am.gallet_city, (768*scale, 768*scale))
+        self.map_text = am.normal_font[50].render("GAME MAP", True, 0xFFFFFFFF)
+        self.map_text_pos = (640*scale-self.map_text.get_width()/2 , 20*scale)
+        if characters != None:
+             self.characters = characters
+        self.update_map_name_tags(scale)
         return None
+    
+    def update_map_name_tags(self, scale) -> None:
+        self.name_tags.clear()
+        for c in self.characters:
+            if not c.name == "Sahara Employee":
+                self.name_tags.append((am.normal_font[12].render(c.name, True, 0xFFFFFFFF, 0x00000000), ((c.unscaled_pos[0]+2560)*0.15*scale, (c.unscaled_pos[1]+2560)*0.15*scale)))
+        return None
+    
+    def trigger_map(self) -> bool:
+        self.show_map = not self.show_map
+        return self.show_map
 
 class Notification:
     def __init__(self, text: str = "Hello World!", pos: tuple[float, float] = (0, 0), scale: float = 1, type: str = "default", remaining_time = 8) -> None:

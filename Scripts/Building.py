@@ -2,6 +2,7 @@ import math
 import pygame
 
 import Scripts.AssetManager as am
+import Scripts.AudioManager as audio
 import Scripts.OverlayGUI as overlay
 from Scripts.ScreenElements import Button, InteractionPrompt, Options, OptionsPrompt
 
@@ -155,6 +156,7 @@ class SustainINC(Building):
             self.flags["carboncontribution"] -= min(14, 0.75*self.level) # type: ignore
             self.gm.resources -= self.cost
 
+            audio.play_sound("upgrade")
             self.income = self.income_at_level(self.level)
             self.cost = math.e**(2*self.level)
             if self.level < self.max_level: self.prompts = [OptionsPrompt(f"SUSTAIN, INC\nCurrent Level: {self.level}\nCurrent Income: {overlay.format_value(int(self.income))}/s\nUpgrade to level {self.level+1}? (New income={overlay.format_value(int(self.income_at_level(self.level+1)))}/s)", Options([(f"$ {overlay.format_value(self.cost)}", self.upgrade), ("Cancel", self.uninteract)]))]

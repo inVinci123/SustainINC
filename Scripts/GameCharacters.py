@@ -4,6 +4,7 @@ from Scripts.Character import NPC
 from Scripts.ScreenElements import InteractionPrompt, Options, OptionsPrompt
 import Scripts.OverlayGUI as overlay
 import Scripts.AssetManager as am
+import Scripts.AudioManager as audio
 
 class MelonUsk(NPC):
     def __init__(self, player_name: str, flags: dict[str, bool|int|object]) -> None:
@@ -85,11 +86,13 @@ class MelonUsk(NPC):
             self.flags["investmentlevel"] = 1
             self.flags["carboncontribution"] -= 15 # type: ignore
             overlay.gui.push_notification("Global Carbon Footprint improved!")
+            audio.play_sound("success")
             overlay.gui.push_notification("Income increased by 10%", "info")
         elif self.level == 11:
             self.flags["investmentlevel"] += 1 # type: ignore
             self.flags["carboncontribution"] -= 30 # type: ignore
             overlay.gui.push_notification("Global Carbon Footprint improved!")
+            audio.play_sound("success")
             overlay.gui.push_notification("Income increased by 10%", "info")
             self.level = 12
             self.prompt_index = 0
@@ -175,6 +178,7 @@ class MelonUsk(NPC):
             self.level = 14
             self.flags["carboncontribution"] -= 30 # type: ignore
             overlay.gui.push_notification("Global Carbon Footprint improved!")
+            audio.play_sound("success")
             if overlay.gui.check_objective("telluskaboutthegame"):
                 overlay.gui.remove_objective("telluskaboutthegame")
             if not overlay.gui.check_objective("telljesosaboutthegame") and not overlay.gui.check_objective("tellfeastaboutthegame"):
@@ -214,6 +218,7 @@ class GraterThunderberg(NPC):
         if self.level == 1:
             self.flags["carboncontribution"] -= 30 # type: ignore
             overlay.gui.push_notification("Global Carbon Footprint improved!")
+            audio.play_sound("success")
             self.prompt_index = 0
             self.level += 1
             self.flags["donatetoun"] = True
@@ -337,6 +342,8 @@ class MrGutters(NPC):
             if not self.is_incorrect:
                 self.prompt_index = self.quiz_level
         elif self.level == 2 and self.flags["daniconvinced"]:
+            if overlay.gui.check_objective("gotogutters"):
+                overlay.gui.remove_objective("gotogutters")
             self.level = 3
         elif self.level == 4 and overlay.gui.check_objective("meetguttersforfinalmission"):
             overlay.gui.remove_objective("meetguttersforfinalmission")
@@ -395,7 +402,7 @@ class MrDani(NPC):
                 OptionsPrompt("MR DANI: There you are. I'll start to work on the projects now. Head back to Mr Gutters, he was looking for you", Options([("Thank you.", self.uninteract)]))
             ],
             [ # lvl 5
-                OptionsPrompt("MR DANI: Yayaya I got the dolla dolla dolla.\nUhm *cough cough* What are you doing here?", Options([("Leave...", self.uninteract)]))
+                OptionsPrompt("MR DANI: $$ :) $$\nUhm *cough cough* What are you doing here?", Options([("Leave...", self.uninteract)]))
             ]
         ]
         return None
@@ -426,7 +433,9 @@ class MrDani(NPC):
             if not overlay.gui.check_objective("convinceuskfordani") and self.flags["spaceyacquired"]: # additional condition to avoid a weird bug
                 self.flags["carboncontribution"] -= 80 # type: ignore
                 overlay.gui.push_notification("Global Carbon Footprint improved!")
+                audio.play_sound("success")
                 self.level = 4
+                overlay.gui.add_objective("gotogutters", "Go back to Mr Gutters")
                 self.flags["daniconvinced"] = True
 
         return super().interact()
@@ -469,7 +478,7 @@ class BuffJesos(NPC):
         self.carbon_contribution = 5
         self.flags = flags
         self.player_name = player_name
-        self.investment_amount = 5e8
+        self.investment_amount = 3e8
         super().__init__(anim=am.jesos_anim, pos=(1950, 2150), name="Buff Jesos", prompts=[])
         self.prompts = [
             [ # lvl 0
@@ -506,10 +515,10 @@ class BuffJesos(NPC):
             ],
             [ # lvl 8
                 InteractionPrompt(f"{self.player_name}: Hey Mr Jesos, have you heard of inV's game Sustain INC? It is aiming to improve awareness about climate change and sustainability. Can you help me promote the game?"),
-                OptionsPrompt("BUFF JESOS: I don't have any time for games. But I'll see what I can do", Options([("Much Appreciated!", self.uninteract)]))
+                OptionsPrompt("BUFF JESOS: I don't have any time for games. But I'll see what I can do", Options([("Appreciated!", self.uninteract)]))
             ],
             [ # lvl 9
-                OptionsPrompt("BUFF JESOS: I'll see what I can do to promote inV's game, Sustain INC", Options([("Much Appreciated!", self.uninteract)]))
+                OptionsPrompt("BUFF JESOS: I'll see what I can do to promote inV's game, Sustain INC", Options([("Appreciated!", self.uninteract)]))
             ]
         ]
         return None
@@ -525,6 +534,7 @@ class BuffJesos(NPC):
         if self.level == 6:
             self.flags["carboncontribution"] -= 80 # type: ignore
             overlay.gui.push_notification("Global Carbon Footprint improved!")
+            audio.play_sound("success")
             self.level = 7
             self.prompt_index = 0
             self.flags["investmentlevel"] += 1 # type: ignore
@@ -558,11 +568,11 @@ class BuffJesos(NPC):
                 self.level = 5
             else:
                 self.level = 6
-                self.investment_amount = max(10e9, 2*math.exp(2.5*self.flags['sustainlevel'])) # type: ignore
+                self.investment_amount = max(10e9, 2*math.exp(2*self.flags['sustainlevel'])) # type: ignore
                 self.prompts[6][1] = OptionsPrompt(f"BUFF JESOS: I hear Mr Usk is in too. I'll be in if you are willing to invest $ {overlay.format_value(self.investment_amount)} into the Jesos Earth Fund", Options([(f"$ {overlay.format_value(self.investment_amount)}", lambda : self.spend_money(self.investment_amount)), ("Not now...", self.uninteract)]))
         elif self.level == 5 and not overlay.gui.check_objective("convinceusktogogreen"):
             self.level = 6
-            self.investment_amount = max(10e9, 2*math.exp(2.5*self.flags['sustainlevel'])) # type: ignore
+            self.investment_amount = max(10e9, 2*math.exp(2*self.flags['sustainlevel'])) # type: ignore
             self.prompts[6][1] = OptionsPrompt(f"BUFF JESOS: I hear Mr Usk is in too. I'll be in if you are willing to invest $ {overlay.format_value(self.investment_amount)} into the Jesos Earth Fund", Options([(f"$ {overlay.format_value(self.investment_amount)}", lambda : self.spend_money(self.investment_amount)), ("Not now...", self.uninteract)]))
         elif self.level == 6:
             if self.flags["getresources"]() < self.investment_amount: # type: ignore
@@ -667,6 +677,7 @@ class MrFeast(NPC):
         elif self.level in [3, 4]:
             self.flags["carboncontribution"] -= 35 # type: ignore
             overlay.gui.push_notification("Global Carbon Footprint improved!")
+            audio.play_sound("success")
             self.level = 5
             self.prompt_index = 0
             return None
@@ -700,6 +711,8 @@ class MrFeast(NPC):
         elif self.level == 6:
             self.flags["carboncontribution"] -= 40 # type: ignore
             overlay.gui.push_notification("Global Carbon Footprint improved!")
+            audio.play_sound("success")
+            
             if overlay.gui.check_objective("tellfeastaboutthegame"):
                 overlay.gui.remove_objective("tellfeastaboutthegame")
             if not overlay.gui.check_objective("telljesosaboutthegame") and not overlay.gui.check_objective("telluskaboutthegame"):
@@ -741,6 +754,7 @@ class inV(NPC):
             self.prompt_index = 0
             self.flags["carboncontribution"] -= 30 # type: ignore
             overlay.gui.push_notification("Global Carbon Footprint improved!")
+            audio.play_sound("success")
             return None
         self.uninteract()
         return None
@@ -749,9 +763,9 @@ class inV(NPC):
         if self.level == 0 and overlay.gui.check_objective("meetinv"):
             overlay.gui.remove_objective("meetinv")
             self.level = 1
-            self.investment_amount = max(self.investment_amount, 4*math.exp(2*self.flags['sustainlevel'])) # type: ignore
-            self.prompts[1][1] = OptionsPrompt(f"inV: OMG {self.player_name}! I'm a big fan of your philanthropic actions. In fact my game is modelled after you. Development is going slow, I can use some investment: $ {overlay.format_value(self.investment_amount)}", Options([(f"$ {overlay.format_value(self.investment_amount)}", lambda : self.spend_money(self.investment_amount))]))
-            self.prompts[2][0] = OptionsPrompt(f"inV: Development is going slow, I can use some investment: $ {overlay.format_value(self.investment_amount)}", Options([(f"$ {overlay.format_value(self.investment_amount)}", lambda : self.spend_money(self.investment_amount))]))
+            self.investment_amount = max(self.investment_amount, 2*math.exp(2*self.flags['sustainlevel'])) # type: ignore
+            self.prompts[1][1] = OptionsPrompt(f"inV: OMG {self.player_name}! I'm a big fan of your philanthropic actions. In fact my game is modelled after you. Development is going slow, I can use some investment: $ {overlay.format_value(self.investment_amount)}", Options([(f"$ {overlay.format_value(self.investment_amount)}", lambda : self.spend_money(self.investment_amount)), ("Not now", self.uninteract)]))
+            self.prompts[2][0] = OptionsPrompt(f"inV: Development is going slow, I can use some investment: $ {overlay.format_value(self.investment_amount)}", Options([(f"$ {overlay.format_value(self.investment_amount)}", lambda : self.spend_money(self.investment_amount)), ("Not now", self.uninteract)]))
         elif self.level in [1, 2]:
             if self.flags["getresources"]() < self.investment_amount: # type: ignore
                 self.prompts[1][1].opts.options[0].inactive = True # type: ignore

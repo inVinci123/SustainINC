@@ -2,6 +2,7 @@ import pygame
 import math
 
 import Scripts.AssetManager as am
+import Scripts.AudioManager as audio
 
 class Button:
     def __init__(self, pos, size, on_click, inactive_colour = 0x6A6A6A, normal_colour = 0xFBFBFB, hover_colour = 0xC3C3C3, click_colour = 0x999999) -> None:
@@ -59,6 +60,7 @@ class Button:
             self.check()
             colour = self.click_colour if self.click else (self.hover_colour if self.hover else self.normal_colour)
             if self.click_complete:
+                audio.play_sound("click")
                 self.on_click()
                 self.click_complete = False
         else:
@@ -142,7 +144,6 @@ class CenteredTextButton(Button):
         self.text_surf = am.normal_font[24].render(self.str, True, self.text_colour)
         self.text_rect = self.text_surf.get_rect()
         self.text_pos = (self.scaled_pos[0] + self.scaled_size[0]/2 - self.text_rect.width/2, self.scaled_pos[1] + self.scaled_size[1]/2 - self.text_rect.height/2)
-        # fix this ^^^
         return None
     
     def draw(self, screen: pygame.Surface, check: bool = True) -> None:
