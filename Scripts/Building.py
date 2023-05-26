@@ -84,7 +84,7 @@ class SustainINC(Building):
     def __init__(self, gm, flags: dict[str, bool|int|object]) -> None:
         self.gm = gm
         self.flags = flags
-        pos = (580, 0)
+        pos = (-1040, 1760) # position of sustain on the map
         super().__init__("SUSTAIN INC.", pos, "SustainINC")
 
         self.interaction_radius = 400
@@ -180,9 +180,13 @@ class SustainINC(Building):
         return None
 
     def draw(self, screen: pygame.Surface, cam_pos: tuple[float, float], tick: int = 0, debug_circle: bool = False) -> None:
-        self.colour = 0x424242 if self.can_interact else 0x696969
-        rel_pos = super().draw(screen, cam_pos, tick)
+        rel_pos: tuple[float, float] = (self.scaled_pos[0]-cam_pos[0], self.scaled_pos[1]-cam_pos[1])
+        self.col_rect.topleft = rel_pos # type: ignore
+        if self.inframe:
+            if debug_circle:
+                pygame.draw.circle(screen, 0xFFFFFF, (rel_pos[0]+self.col_rect.size[0]/2, rel_pos[1]+self.col_rect.size[1]/2), self.interaction_radius*self.scale, 1)
+            if self.can_interact:
+                screen.blit(self.image, rel_pos) # draw the "can interact" image if it can interact
+            screen.blit(self.name_tag, (rel_pos[0]+self.col_rect.width/2-self.name_tag_rect.width/2, rel_pos[1]-self.name_tag_rect.height))
         self.check_upgrade()
-        if debug_circle:
-            pygame.draw.circle(screen, 0xFFFFFF, (rel_pos[0]+self.col_rect.size[0]/2, rel_pos[1]+self.col_rect.size[1]/2), self.interaction_radius*self.scale, 1)
         return None

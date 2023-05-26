@@ -3,23 +3,23 @@
         {
             "comment": "top world collider",
             "xpos": -2560,
-            "ypos": -390,
+            "ypos": -890,
             "xsiz": 5120,
             "ysiz": 50
         },
         {
             "comment": "right world collider",
             "xpos": 2560,
-            "ypos": -390,
+            "ypos": -890,
             "xsiz": 50,
-            "ysiz": 2950
+            "ysiz": 3450
         },
         {
             "comment": "left world collider",
             "xpos": -2560,
-            "ypos": -390,
+            "ypos": -890,
             "xsiz": 50,
-            "ysiz": 2950
+            "ysiz": 3450
         },
         {
             "comment": "bottom world collider",
@@ -27,6 +27,186 @@
             "ypos": 2560,
             "xsiz": 5120,
             "ysiz": 50
+        },
+        {
+            "xpos": -2560,
+            "ypos": 1530,
+            "xsiz": 1340,
+            "ysiz": 720
+        },
+        {
+            "xpos": -2560,
+            "ypos": 1040,
+            "xsiz": 330,
+            "ysiz": 490
+        },
+        {
+            "xpos": -2160,
+            "ypos": 1200,
+            "xsiz": 880,
+            "ysiz": 1040
+        },
+        {
+            "xpos": -2080,
+            "ypos": 1050,
+            "xsiz": 560,
+            "ysiz": 150
+        },
+        {
+            "xpos": -1920,
+            "ypos": 240,
+            "xsiz": 320,
+            "ysiz": 640
+        },
+        {
+            "xpos": -2080,
+            "ypos": 320,
+            "xsiz": 80,
+            "ysiz": 730
+        },
+        {
+            "xpos": -1520,
+            "ypos": 320,
+            "xsiz": 150,
+            "ysiz": 700
+        },
+        {
+            "xpos": -2080,
+            "ypos": 970,
+            "xsiz": 670,
+            "ysiz": 80
+        },
+        {
+            "xpos": -1410,
+            "ypos": 270,
+            "xsiz": 650,
+            "ysiz": 570
+        },
+        {
+            "xpos": -2560,
+            "ypos": -240,
+            "xsiz": 160,
+            "ysiz": 1280
+        },
+        {
+            "xpos": -2080,
+            "ypos": -240,
+            "xsiz": 1430,
+            "ysiz": 160
+        },
+        {
+            "xpos": -1440,
+            "ypos": -390,
+            "xsiz": 320,
+            "ysiz": 150
+        },
+        {
+            "xpos": -330,
+            "ypos": -240,
+            "xsiz": 2890,
+            "ysiz": 160
+        },
+        {
+            "xpos": -160,
+            "ypos": -160,
+            "xsiz": 560,
+            "ysiz": 130
+        },
+        {
+            "xpos": -800,
+            "ypos": 270,
+            "xsiz": 160,
+            "ysiz": 770
+        },
+        {
+            "xpos": -400,
+            "ypos": 240,
+            "xsiz": 720,
+            "ysiz": 800
+        },
+        {
+            "xpos": -1040,
+            "ypos": 1360,
+            "xsiz": 1130,
+            "ysiz": 900
+        },
+        {
+            "xpos": -640,
+            "ypos": 1210,
+            "xsiz": 240,
+            "ysiz": 160
+        },
+        {
+            "xpos": -320,
+            "ypos": 1200,
+            "xsiz": 400,
+            "ysiz": 170
+        },
+        {
+            "xpos": -160,
+            "ypos": 2080,
+            "xsiz": 320,
+            "ysiz": 240
+        },
+        {
+            "xpos": 0,
+            "ypos": 1690,
+            "xsiz": 160,
+            "ysiz": 630
+        },
+        {
+            "xpos": 240,
+            "ypos": 1280,
+            "xsiz": 80,
+            "ysiz": 320
+        },
+        {
+            "xpos": 240,
+            "ypos": 1680,
+            "xsiz": 80,
+            "ysiz": 80
+        },
+        {
+            "xpos": 160,
+            "ypos": 1760,
+            "xsiz": 400,
+            "ysiz": 480
+        },
+        {
+            "xpos": 800,
+            "ypos": 240,
+            "xsiz": 720,
+            "ysiz": 1200
+        },
+        {
+            "xpos": 790,
+            "ypos": 1440,
+            "xsiz": 570,
+            "ysiz": 800
+        },
+        {
+            "xpos": 1760,
+            "ypos": 240,
+            "xsiz": 730,
+            "ysiz": 1280
+        },
+        {
+            "xpos": 1840,
+            "ypos": 1530,
+            "xsiz": 320,
+            "ysiz": 150
+        },
+        {
+            "xpos": 1680,
+            "ypos": 1680,
+            "xsiz": 640,
+            "ysiz": 480
+        },
+        {
+            "xpos": -800,
+            "ypos": 2400,
+            "xsiz": 400,
+            "ysiz": 160
         }
     ]
 }

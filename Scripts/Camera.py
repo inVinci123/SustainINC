@@ -5,7 +5,7 @@ class Camera:
     def __init__(self, game_scale, unscaled_player_pos=(0,0)) -> None:
         self.game_scale = game_scale
 
-        self.unscaled_cam_pos = (-640+32, -360+32)#unscaled_player_pos
+        self.unscaled_cam_pos = (unscaled_player_pos[0]-640+32, unscaled_player_pos[1]-360+32)#unscaled_player_pos
         self.cam_pos = (self.unscaled_cam_pos[0]*game_scale, self.unscaled_cam_pos[1]*game_scale) # set this to the TOPLEFT of the screen, callibrate everything else accordingly
 
         self.movebox_lim: tuple[float, float] = (320*game_scale, 180*game_scale)

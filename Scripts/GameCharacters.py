@@ -12,15 +12,15 @@ class MelonUsk(NPC):
         self.player_name = player_name
         self.investment_amount = 3e5
 
-        super().__init__(anim=am.melon_anim, pos=(100, 100), name="Melon Usk", prompts=[])
+        super().__init__(anim=am.melon_anim, pos=(-165, 2300), name="Melon Usk", prompts=[])
         self.prompts = [
             [ # lvl 0
                 InteractionPrompt(f"MELON USK: Hello {player_name}! I am Melon Usk, a fellow concernee for the planet... \n[Press SPACE for the next dialogue]"),
                 InteractionPrompt("I'm sure you are as passionate about saving this world as I am!\nUnfortunately, in this world driven by money, there are far too many unsustainable practices that are hurting the planet. Let's together convince them to build a better world!..."),
-                OptionsPrompt("For now, you will need money to save this world.\nTry upgrading your business: Sustain, INC to level 5! Come back here once you are done.", Options([("Let's Go!", self.uninteract)]))
+                OptionsPrompt("For now, you will need money to save this world.\nA little to the left is your business, Sustain INC. Try upgrading to level 5 and Come back here once you are done.\n Remember, you can press SHIFT to Sprint.", Options([("Let's Go!", self.uninteract)]))
             ],
             [ # lvl 1
-                OptionsPrompt("MELON USK: Let's save this world together!\nTry upgrading your business: Sustain, INC to Level 5. Come back here once you are done!", Options([("Let's Go!", self.uninteract)]))
+                OptionsPrompt("MELON USK: Let's save this world together!\nGo to your left and try upgrading your business: Sustain, INC to Level 5. Come back here once you are done!\n Remember to press SHIFT to sprint.", Options([("Let's Go!", self.uninteract)]))
             ],
             [ # lvl 2
                 InteractionPrompt("MELON USK: Awesome, it may take a while to completely upgrade your business, but we will get there. For now, let's begin saving the world..."),
@@ -33,7 +33,7 @@ class MelonUsk(NPC):
             [ # lvl 4
                 InteractionPrompt("MELON USK: I see you are an admirer of Ms Thunderberg. Not many have the patience to deal with her..."),
                 InteractionPrompt("But anyways, did you know that transport accounted for 37% (2021 data) of CO2 emissions in end user sectors? It's time we move to cleaner sources..."),
-                InteractionPrompt("I am launching ASLET, a company focused on creating electric cars - relying on a significantly cleaner source of energy..."),
+                InteractionPrompt("I have recently launched ASLET, a company focused on creating electric cars that rely on a significantly cleaner source of energy..."),
                 OptionsPrompt("But I'll need your support. Would you be interested in being a 10% ($ 500k) share holder?", Options([("$ 500 K", lambda : self.spend_money(5e5)), ("Not now", self.uninteract)]))
             ],
             [ # lvl 5
@@ -150,6 +150,7 @@ class MelonUsk(NPC):
         if self.level == 0:
             if not overlay.gui.check_objective("upgradesustain"):
                 overlay.gui.add_objective("upgradesustain", "Upgrade Sustain, INC")
+            # self.flags["hascar"] = True
             self.level = 1
         elif self.level == 2:
             if not overlay.gui.check_objective("talkwiththunderberg"):
@@ -188,7 +189,7 @@ class GraterThunderberg(NPC):
 
         self.donation_amount: float = 8e4
         
-        super().__init__(anim=am.grater_anim, pos=(-220, 100), name="Grater Thunderberg", prompts=[])
+        super().__init__(anim=am.grater_anim, pos=(-1100, 800), name="Grater Thunderberg", prompts=[])
         self.prompts = [
             [ # lvl 0
                 OptionsPrompt("GRATER THUNDERBERG: How DARE you talk to me without a reference? Go away!", Options([("Leave", self.uninteract)]))
@@ -250,7 +251,10 @@ class MrGutters(NPC):
         self.carbon_contribution = -5
         self.flags = flags
         self.player_name = player_name
-        super().__init__(anim=am.gutters_anim, pos=(-500, 0), name="Mr Gutters", prompts=[])
+
+        self.quiz_level = 0
+        self.is_incorrect = False
+        super().__init__(anim=am.gutters_anim, pos=(-2100, 800), name="Mr Gutters", prompts=[])
         self.prompts = [
             [ # lvl 0
                 OptionsPrompt("MR GUTTERS: Ei, cara! I busy man, no reference no talk.", Options([("Leave", self.uninteract)]))
@@ -258,10 +262,10 @@ class MrGutters(NPC):
             [ # lvl 1
                 InteractionPrompt(f"MR GUTTERS: Ola {self.player_name}! Thank you for your generous donation. To deem whether you are capable for a partnership, I'll quiz you!\n Get ready mate..."),
                 OptionsPrompt(f"Q1: What does UN stand for?", Options([("United Nations", self.correct), ("US Navy ", self.incorrect)])),
-                OptionsPrompt(f"That was an easy one, let's see how you go now.\nQ2: When were the UN Sustainable Development Goals written?", Options([("1997", self.incorrect), ("2007", self.incorrect), ("2015", self.correct)])),
-                OptionsPrompt(f"Inacreditavel! Well, any five year old could answer that. Not this one though.\nQ3: How much of end user sector CO2 emissions did transport account for in 2021?", Options([("37%", self.correct), ("69%", self.incorrect), ("26%", self.incorrect)])),
-                OptionsPrompt(f"37% !!! It's time we move to Electric cars already.\nQ4: Approx 100k species face the threat of extinction due to climate change.\nTrue or False?", Options([("True", self.incorrect), ("False", self.correct)])),
-                OptionsPrompt(f"It's infact 1 million species. We better hurry up and save the world.\nFinal Q: What temperature threshold was agreed upon in the Paris agreement.", Options([("2.5 degrees", self.incorrect), ("1.5 degrees", lambda: self.correct(True)), ("0.95 degrees", self.incorrect)])),
+                OptionsPrompt(f"Great!\nQ2: When were the UN Sustainable Development Goals written?", Options([("1997", self.incorrect), ("2007", self.incorrect), ("2015", self.correct)])),
+                OptionsPrompt(f"Inacreditavel!\nQ3: How much of end user sector CO2 emissions did transport account for in 2021?", Options([("37%", self.correct), ("69%", self.incorrect), ("26%", self.incorrect)])),
+                OptionsPrompt(f"transport accounted for 37% of end user CO2 emissions in 2021! It's time we move to Electric cars already.\nQ4: Approx 100k species face the threat of extinction due to climate change.\nTrue or False?", Options([("True", self.incorrect), ("False", self.correct)])),
+                OptionsPrompt(f"1 million species face the threat of extinction! We better hurry up and save the world.\nFinal Q: What temperature threshold was agreed upon in the Paris agreement.", Options([("2.5 degrees", self.incorrect), ("1.5 degrees", lambda: self.correct(True)), ("0.95 degrees", self.incorrect)])),
                 InteractionPrompt("Resposta Incorreta! Try again...")
             ],
             [ # lvl 2
@@ -297,17 +301,25 @@ class MrGutters(NPC):
                 self.prompt_index = 0
                 self.flags["unlockglobaltemperature"]() # type: ignore
         else:
+            self.quiz_level += 1
             self.prompt_index += 1
         return None
     
     def incorrect(self):
         if self.level == 1:
             self.prompt_index = len(self.prompts[1])-1
+            self.is_incorrect = True
+        return None
 
     def next_dialogue(self, num=1) -> bool:
         if self.level == 1:
+            if self.is_incorrect:
+                self.is_incorrect = False
             if self.prompt_index not in (0, len(self.prompts[1])-1): # not the first dialogue or the last dialogue
                 self.incorrect()
+                return True
+            elif self.prompt_index == 0:
+                self.correct()
                 return True
         return super().next_dialogue(num)
     
@@ -321,6 +333,9 @@ class MrGutters(NPC):
             if overlay.gui.check_objective("talkwithgutters"):
                 overlay.gui.remove_objective("talkwithgutters")
             self.level = 1
+        if self.level == 1:
+            if not self.is_incorrect:
+                self.prompt_index = self.quiz_level
         elif self.level == 2 and self.flags["daniconvinced"]:
             self.level = 3
         elif self.level == 4 and overlay.gui.check_objective("meetguttersforfinalmission"):
@@ -357,7 +372,7 @@ class MrDani(NPC):
         self.flags = flags
         self.player_name = player_name
         self.investment_amount = 1e6
-        super().__init__(anim=am.dani_anim, pos=(-900, 0), name="Mr Dani", prompts=[])
+        super().__init__(anim=am.dani_anim, pos=(1600, 900), name="Mr Dani", prompts=[])
         self.prompts = [
             [ # lvl 0
                 OptionsPrompt("MR DANI: Go away, I'm busy making $$.", Options([("Leave", self.uninteract)]))
@@ -455,7 +470,7 @@ class BuffJesos(NPC):
         self.flags = flags
         self.player_name = player_name
         self.investment_amount = 5e8
-        super().__init__(anim=am.jesos_anim, pos=(0, 500), name="Buff Jesos", prompts=[])
+        super().__init__(anim=am.jesos_anim, pos=(1950, 2150), name="Buff Jesos", prompts=[])
         self.prompts = [
             [ # lvl 0
                 OptionsPrompt("BUFF JESOS: Go away, I'm busy.", Options([("Leave", self.uninteract)]))
@@ -585,7 +600,7 @@ class SaharaEmployee(NPC):
         super().__init__(anim=am.sahara_anim, pos=pos, name="Sahara Employee", prompts=[])
         self.prompts = [
             [ # lvl 0
-                OptionsPrompt("Go away, I don't wanna be fired", Options([("Leave", self.uninteract)]))
+                OptionsPrompt("Go away, I have work to do. I don't wanna be fired.", Options([("Leave", self.uninteract)]))
             ]
         ]
         return None
@@ -607,7 +622,7 @@ class MrFeast(NPC):
         self.flags = flags
         self.player_name = player_name
         self.donation_amount = 1e9
-        super().__init__(anim=am.feast_anim, pos=(0, -200), name="Mr Feast", prompts=[])
+        super().__init__(anim=am.feast_anim, pos=(0, -30), name="Mr Feast", prompts=[])
         self.prompts = [
             [ # lvl 0
                 OptionsPrompt("Answer this question to get free money!\nHow many trees has Team Trees planted?", Options([("> 20M", lambda : self.spend_money(-5e4)), ("< 20 M", self.next_dialogue)])),
@@ -697,7 +712,7 @@ class inV(NPC):
         self.flags = flags
         self.player_name = player_name
         self.investment_amount = 25e9
-        super().__init__(anim=am.inv_anim, pos=(20, 750), name="inV", prompts=[])
+        super().__init__(anim=am.inv_anim, pos=(-900, 2450), name="inV", prompts=[])
         self.prompts = [
             [ # lvl 0
                 OptionsPrompt("inV: Busy developing a game. Come back later!", Options([("Leave", self.uninteract)]))

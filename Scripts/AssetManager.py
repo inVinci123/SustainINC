@@ -28,45 +28,63 @@ def load_assets(game_scale):
     gallet_city = pygame.transform.scale(pygame.image.load("./Assets/gallet_city.png"), (5120*game_scale, 5120*game_scale))
 
     buildings = {
-        "SustainINC": pygame.transform.scale(pygame.image.load("./Assets/Buildings/SustainINC.png"), (512*game_scale, 512*game_scale))
+        "SustainINC": pygame.transform.scale(pygame.image.load("./Assets/Buildings/SustainINC.png"), (470*game_scale, 560*game_scale))
     }
     
-    back_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/back_idle_1.png"), (80*game_scale, 80*game_scale))
-    back_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/back_idle_2.png"), (80*game_scale, 80*game_scale))
-    back_walk_1 = pygame.transform.scale(pygame.image.load("./Assets/back_walk_1.png"), (80*game_scale, 80*game_scale))
-    back_walk_2 = pygame.transform.scale(pygame.image.load("./Assets/back_walk_2.png"), (80*game_scale, 80*game_scale))
+    back_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/ben/back_idle_1.png"), (80*game_scale, 80*game_scale))
+    back_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/ben/back_idle_2.png"), (80*game_scale, 80*game_scale))
+    back_walk_1 = pygame.transform.scale(pygame.image.load("./Assets/ben/back_walk_1.png"), (80*game_scale, 80*game_scale))
+    back_walk_2 = pygame.transform.scale(pygame.image.load("./Assets/ben/back_walk_2.png"), (80*game_scale, 80*game_scale))
 
-    front_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/front_idle_1.png"), (80*game_scale, 80*game_scale))
-    front_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/front_idle_2.png"), (80*game_scale, 80*game_scale))
-    front_walk_1 = pygame.transform.scale(pygame.image.load("./Assets/front_walk_1.png"), (80*game_scale, 80*game_scale))
-    front_walk_2 = pygame.transform.scale(pygame.image.load("./Assets/front_walk_2.png"), (80*game_scale, 80*game_scale))
+    front_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/ben/front_idle_1.png"), (80*game_scale, 80*game_scale))
+    front_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/ben/front_idle_2.png"), (80*game_scale, 80*game_scale))
+    front_walk_1 = pygame.transform.scale(pygame.image.load("./Assets/ben/front_walk_1.png"), (80*game_scale, 80*game_scale))
+    front_walk_2 = pygame.transform.scale(pygame.image.load("./Assets/ben/front_walk_2.png"), (80*game_scale, 80*game_scale))
     
-    right_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/right_idle_1.png"), (80*game_scale, 80*game_scale))
-    right_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/right_idle_2.png"), (80*game_scale, 80*game_scale))
-    right_walk_1 = pygame.transform.scale(pygame.image.load("./Assets/right_walk_1.png"), (80*game_scale, 80*game_scale))
-    right_walk_2 = pygame.transform.scale(pygame.image.load("./Assets/right_walk_2.png"), (80*game_scale, 80*game_scale))
+    right_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/ben/right_idle_1.png"), (80*game_scale, 80*game_scale))
+    right_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/ben/right_idle_2.png"), (80*game_scale, 80*game_scale))
+    right_walk_1 = pygame.transform.scale(pygame.image.load("./Assets/ben/right_walk_1.png"), (80*game_scale, 80*game_scale))
+    right_walk_2 = pygame.transform.scale(pygame.image.load("./Assets/ben/right_walk_2.png"), (80*game_scale, 80*game_scale))
 
-    left_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/left_idle_1.png"), (80*game_scale, 80*game_scale))
-    left_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/left_idle_2.png"), (80*game_scale, 80*game_scale))
-    left_walk_1 = pygame.transform.scale(pygame.image.load("./Assets/left_walk_1.png"), (80*game_scale, 80*game_scale))
-    left_walk_2 = pygame.transform.scale(pygame.image.load("./Assets/left_walk_2.png"), (80*game_scale, 80*game_scale))
+    left_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/ben/left_idle_1.png"), (80*game_scale, 80*game_scale))
+    left_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/ben/left_idle_2.png"), (80*game_scale, 80*game_scale))
+    left_walk_1 = pygame.transform.scale(pygame.image.load("./Assets/ben/left_walk_1.png"), (80*game_scale, 80*game_scale))
+    left_walk_2 = pygame.transform.scale(pygame.image.load("./Assets/ben/left_walk_2.png"), (80*game_scale, 80*game_scale))
+    
+    # REDUNDANT: NO CAR WAS ADDED TO THE GAME
+    # car_left_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/car/left_idle_1.png"), (120*game_scale, 120*game_scale))
+    # car_left_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/car/left_idle_2.png"), (120*game_scale, 120*game_scale))
+
+    # car_right_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/car/right_idle_1.png"), (120*game_scale, 120*game_scale))
+    # car_right_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/car/right_idle_2.png"), (120*game_scale, 120*game_scale))
+    
+    # car_front_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/car/front_idle_1.png"), (120*game_scale, 120*game_scale))
+    # car_front_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/car/front_idle_2.png"), (120*game_scale, 120*game_scale))
+
+    # car_back_idle_1 = pygame.transform.scale(pygame.image.load("./Assets/car/back_idle_1.png"), (120*game_scale, 120*game_scale))
+    # car_back_idle_2 = pygame.transform.scale(pygame.image.load("./Assets/car/back_idle_2.png"), (120*game_scale, 120*game_scale))
+
 
     ben_anim = {
         "w": {
             "idle": [back_idle_1, back_idle_1, back_idle_2, back_idle_2],
-            "walk": [back_walk_1, back_walk_2, back_walk_1, back_walk_2]
+            "walk": [back_walk_1, back_walk_2, back_walk_1, back_walk_2],
+            # "driving": [car_front_idle_1, car_front_idle_2, car_front_idle_1, car_front_idle_2]
         },
         "s": {
             "idle": [front_idle_1, front_idle_1, front_idle_2, front_idle_2],
-            "walk": [front_walk_1, front_walk_2, front_walk_1, front_walk_2]
+            "walk": [front_walk_1, front_walk_2, front_walk_1, front_walk_2],
+            # "driving": [car_back_idle_1, car_back_idle_2, car_back_idle_1, car_back_idle_2]
         },
         "d": {
             "idle": [right_idle_1, right_idle_1, right_idle_2, right_idle_2],
-            "walk": [right_walk_1, right_idle_1, right_walk_2, right_idle_1]
+            "walk": [right_walk_1, right_idle_1, right_walk_2, right_idle_1],
+            # "driving": [car_right_idle_1, car_right_idle_2, car_right_idle_1, car_right_idle_2]
         },
         "a": {
             "idle": [left_idle_1, left_idle_1, left_idle_2, left_idle_2],
-            "walk": [left_walk_1, left_idle_1, left_walk_2, left_idle_1]
+            "walk": [left_walk_1, left_idle_1, left_walk_2, left_idle_1],
+            # "driving": [car_left_idle_1, car_left_idle_2, car_left_idle_1, car_left_idle_2]
         }
     }
 

@@ -47,14 +47,26 @@ class Player(Character):
 
         self.col = {
             "tl": pygame.Rect(self.collider_rect.topleft, (8*self.scale, 8*self.scale)),
-            "l": pygame.Rect((self.collider_rect.left, self.collider_rect.centery-24*self.scale), (8*self.scale, 48*self.scale)),
+            "l": pygame.Rect((self.collider_rect.left, self.collider_rect.centery-12*self.scale), (8*self.scale, 24*self.scale)),
             "bl": pygame.Rect((self.collider_rect.left, self.collider_rect.bottom-8*self.scale), (8*self.scale, 8*self.scale)),
             "b": pygame.Rect((self.collider_rect.centerx-8*self.scale, self.collider_rect.bottom-8*self.scale), (16*self.scale, 8*self.scale)),
             "br": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.bottom-8*self.scale), (8*self.scale, 8*self.scale)),
-            "r": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.centery-24*self.scale), (8*self.scale, 48*self.scale)),
+            "r": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.centery-12*self.scale), (8*self.scale, 24*self.scale)),
             "tr": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.top), (8*self.scale, 8*self.scale)),
             "t": pygame.Rect((self.collider_rect.centerx-8*self.scale, self.collider_rect.top), (16*self.scale, 8*self.scale))
         }
+        # self.cs_rect = pygame.Rect((0, 0), (0.9*self.rect.width, 0.45*self.rect.height))
+        # self.cs_col = {
+        #     "tl": pygame.Rect(self.collider_rect.topleft, (8*self.scale, 8*self.scale)),
+        #     "l": pygame.Rect((self.collider_rect.left, self.collider_rect.centery-12*self.scale), (8*self.scale, 24*self.scale)),
+        #     "bl": pygame.Rect((self.collider_rect.left, self.collider_rect.bottom-8*self.scale), (8*self.scale, 8*self.scale)),
+        #     "b": pygame.Rect((self.collider_rect.centerx-8*self.scale, self.collider_rect.bottom-8*self.scale), (16*self.scale, 8*self.scale)),
+        #     "br": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.bottom-8*self.scale), (8*self.scale, 8*self.scale)),
+        #     "r": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.centery-12*self.scale), (8*self.scale, 24*self.scale)),
+        #     "tr": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.top), (8*self.scale, 8*self.scale)),
+        #     "t": pygame.Rect((self.collider_rect.centerx-8*self.scale, self.collider_rect.top), (16*self.scale, 8*self.scale))
+        # }
+        # self.col = self.norm_col
         return None
     
 
@@ -66,6 +78,7 @@ class Player(Character):
     
 
     def draw(self, screen: pygame.Surface, cam_pos: tuple[float, float], tick: int = 0, walking: bool = False) -> None:
+        # self.anim_state = "driving" if driving_mode else ("walk" if walking else "idle") # can prolly simplyify this
         self.anim_state = "walk" if walking else "idle"
         super().draw(screen, cam_pos, tick)
         self.col = {
@@ -78,6 +91,17 @@ class Player(Character):
             "tr": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.top), (8*self.scale, 8*self.scale)),
             "t": pygame.Rect((self.collider_rect.centerx-8*self.scale, self.collider_rect.top), (16*self.scale, 8*self.scale))
         }
+        # self.cs_col = {
+        #     "tl": pygame.Rect(self.cs_rect.topleft, (8*self.scale, 8*self.scale)),
+        #     "l": pygame.Rect((self.cs_rect.left, self.cs_rect.centery-12*self.scale), (8*self.scale, 24*self.scale)),
+        #     "bl": pygame.Rect((self.cs_rect.left, self.cs_rect.bottom-8*self.scale), (8*self.scale, 8*self.scale)),
+        #     "b": pygame.Rect((self.cs_rect.centerx-8*self.scale, self.cs_rect.bottom-8*self.scale), (32*self.scale, 8*self.scale)),
+        #     "br": pygame.Rect((self.cs_rect.right-8*self.scale, self.cs_rect.bottom-8*self.scale), (8*self.scale, 8*self.scale)),
+        #     "r": pygame.Rect((self.cs_rect.right-8*self.scale, self.cs_rect.centery-12*self.scale), (8*self.scale, 24*self.scale)),
+        #     "tr": pygame.Rect((self.cs_rect.right-8*self.scale, self.cs_rect.top), (8*self.scale, 8*self.scale)),
+        #     "t": pygame.Rect((self.cs_rect.centerx-8*self.scale, self.cs_rect.top), (32*self.scale, 8*self.scale))
+        # }
+        # # self.col = self.norm_col
         return None
 
     def update_scale(self, scale: float, new_anim=None) -> None:
@@ -92,7 +116,20 @@ class Player(Character):
             "tr": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.top), (8*self.scale, 8*self.scale)),
             "t": pygame.Rect((self.collider_rect.centerx-8*self.scale, self.collider_rect.top), (16*self.scale, 8*self.scale))
         }
+        # self.cs_rect = pygame.Rect((0, 0), (0.9*self.rect.width, 0.45*self.rect.height))
+        # self.cs_col = {
+        #     "tl": pygame.Rect(self.collider_rect.topleft, (8*self.scale, 8*self.scale)),
+        #     "l": pygame.Rect((self.collider_rect.left, self.collider_rect.centery-12*self.scale), (8*self.scale, 24*self.scale)),
+        #     "bl": pygame.Rect((self.collider_rect.left, self.collider_rect.bottom-8*self.scale), (8*self.scale, 8*self.scale)),
+        #     "b": pygame.Rect((self.collider_rect.centerx-8*self.scale, self.collider_rect.bottom-8*self.scale), (16*self.scale, 8*self.scale)),
+        #     "br": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.bottom-8*self.scale), (8*self.scale, 8*self.scale)),
+        #     "r": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.centery-12*self.scale), (8*self.scale, 24*self.scale)),
+        #     "tr": pygame.Rect((self.collider_rect.right-8*self.scale, self.collider_rect.top), (8*self.scale, 8*self.scale)),
+        #     "t": pygame.Rect((self.collider_rect.centerx-8*self.scale, self.collider_rect.top), (16*self.scale, 8*self.scale))
+        # }
+        # self.col = self.norm_col
         self.anim = am.ben_anim # make it compatible with all characters?
+        return None
 
 
 class NPC(Character):
@@ -116,7 +153,6 @@ class NPC(Character):
     
     def check_interact(self, player_pos) -> bool:
         if self.can_interact:
-            # interaction prompt
             x, y = player_pos[0]-self.unscaled_pos[0], player_pos[1]-self.unscaled_pos[1]
             if x**2 + y**2 > self.interaction_radius**2:
                 self.can_interact = False
