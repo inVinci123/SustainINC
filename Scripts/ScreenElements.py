@@ -36,7 +36,6 @@ class Button:
         mouse = (mouse[0]-relative_origin[0], mouse[1]-relative_origin[1])
         
         self.hover = self.rect.collidepoint(mouse)
-        # print(mouse)
         if not self.click:
             self.click = self.hover and r_click
         else:

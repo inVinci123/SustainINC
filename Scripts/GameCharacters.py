@@ -25,7 +25,7 @@ class MelonUsk(NPC):
             ],
             [ # lvl 2
                 InteractionPrompt("MELON USK: Awesome, it may take a while to completely upgrade your business, but we will get there. For now, let's begin saving the world..."),
-                InteractionPrompt("Since you are new here, I must explain the rules to you. In order to make connections, you must get a reference to the person.\n Without one, they will get cranky..."),
+                InteractionPrompt("Since you are new here, I must explain the rules to you. In order to make connections, you must be referred to the person.\n Without a reference, they will get cranky..."),
                 OptionsPrompt("For now, go talk to Grater Thunderberg, they have some interesting projects you might be interested in.", Options([("Let's Go!", self.uninteract)]))
             ],
             [ # lvl 3
@@ -150,6 +150,7 @@ class MelonUsk(NPC):
 
     def uninteract(self) -> None:
         self.flags["firstmeloninteraction"] = True
+        overlay.gui.show_hint = False
         if self.level == 0:
             if not overlay.gui.check_objective("upgradesustain"):
                 overlay.gui.add_objective("upgradesustain", "Upgrade Sustain, INC")

@@ -32,7 +32,7 @@ def format_value(val: float) -> str:
 
 class OverlayGUI:
     prompt = InteractionPrompt()
-    show_prompt: bool = True
+    show_prompt: bool = False
     resources_bg = pygame.Surface((280, 30))
     resources_bg.fill(0x121212)
     resources_bg.set_alpha(180)
@@ -67,6 +67,11 @@ class OverlayGUI:
     characters: list = []
     name_tags: list = []
 
+    show_hint: bool = False
+    try:
+        hint_text: Text = Text("Go to Melon Usk and press SPACE to talk to him", (0, 0), (200, 100), am.normal_font[24])
+    except AttributeError:
+        hint_text: Text
     try:
         map = pygame.transform.scale(am.gallet_city, (768, 768))
     except AttributeError:
@@ -97,7 +102,6 @@ class OverlayGUI:
                 screen.blit(self.map_bg, (0, 0))
                 screen.blit(self.map_text, self.map_text_pos)
                 for tag in self.name_tags:
-                    print(tag)
                     self.map.blit(tag[0], tag[1])
                 screen.blit(self.map, (640*self.scale-384*self.scale, 360*self.scale-490*self.scale))
         
@@ -130,6 +134,9 @@ class OverlayGUI:
         screen.blit(self.objectives_bg, (10*self.scale, 100*self.scale))
         for obj in self.display_objectives:
             obj.draw(screen)
+
+        if self.show_hint:
+            self.hint_text.draw(screen)
 
         return None
 
@@ -209,6 +216,7 @@ class OverlayGUI:
         self.map = pygame.transform.scale(am.gallet_city, (768*scale, 768*scale))
         self.map_text = am.normal_font[50].render("GAME MAP", True, 0xFFFFFFFF)
         self.map_text_pos = (640*scale-self.map_text.get_width()/2 , 20*scale)
+        self.hint_text = Text("Go to Melon Usk and press SPACE to talk to him", (250*scale, 590*scale), (740*scale, 100*scale), am.normal_font[24])
         if characters != None:
              self.characters = characters
         self.update_map_name_tags(scale)

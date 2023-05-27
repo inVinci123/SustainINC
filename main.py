@@ -6,10 +6,9 @@ import Scripts.AudioManager as audio
 from Scripts.Character import Character, Player, NPC
 from Scripts.Building import SustainINC
 from Scripts.Camera import Camera
-from Scripts.Tiles import GrassTile
 from Scripts.ScreenElements import Button, Text, InteractionPrompt
 import Scripts.OverlayGUI as overlay
-from Scripts.Screen import PauseScreen, StartScreen
+from Scripts.Screen import EndScreen, PauseScreen, StartScreen
 from Scripts.GalletCity import GalletCity
 
 import sys
@@ -53,9 +52,6 @@ anim_tick: int = 1
 running_time: float = 0
 deltatime: float = 0
 
-# test_button = Button((L/2, H/2), (100, 20), lambda : print("Hello World!"))
-txt_rect = pygame.Rect((69, 69), (40, 80))
-
 gm = GameManager(game_scale)
 start_menu: bool = True
 # gm.post_init(game_scale, debugging)
@@ -76,7 +72,7 @@ def close_pause_menu() -> None:
 
 def start_game(player_name="Player") -> None:
     global start_menu, running_time, gm
-    gm.post_init(game_scale, debugging, player_name)
+    gm.post_init(game_scale, debugging, player_name, end_game)
     overlay.gui.update_scale(game_scale, gm.character_list+[gm.player])
     running_time = 0
     start_menu = False
@@ -89,7 +85,17 @@ def quit_game() -> None:
     running = False
     return None
 
+finished = False
+
+def end_game(*kwargs) -> None:
+    global finished, p, paused
+    finished = True
+    p = EndScreen(game_scale, quit_game, kwargs[0])
+    paused = True
+    return None
+
 p = PauseScreen(game_scale, close_pause_menu, quit_game)
+# p = EndScreen(game_scale, quit_game, 0)
 s = StartScreen(game_scale, start_game, quit_game)
 bg = GalletCity()
 bg.update_scale(game_scale)
@@ -111,8 +117,6 @@ def draw_game_screen() -> None:
     
     running_time += deltatime*1000
 
-    # for tile in gm.grass_tiles:
-    #     tile.draw(game_screen, gm.cam.cam_pos, anim_tick)
     bg.draw(game_screen, gm.cam.cam_pos)
     
     if not paused: gm.evaluate_game_screen(deltatime, debugging)
@@ -191,7 +195,7 @@ def on_resize() -> None:
 
 def process_inputs(events: list[pygame.event.Event]) -> bool:
     """ Process the events/inputs provided by the user, return whether the app should keep running """
-    global L, H, walking, anim_dir, paused
+    global L, H, walking, anim_dir, paused, finished
     keys_pressed = pygame.key.get_pressed()
     running = True
     if start_menu:
@@ -211,8 +215,9 @@ def process_inputs(events: list[pygame.event.Event]) -> bool:
             running = False
         if e.type == pygame.KEYDOWN:
             if e.key == pygame.K_ESCAPE:
+                if not finished:
                 # updating the pause screen data every time it is unpaused
-                paused = not paused
+                    paused = not paused
                 p.update_ps_audio_values() # update the optiosn of the pause screen if this is triggered
             if e.key == pygame.K_m:
                 if not paused:
@@ -239,10 +244,10 @@ def process_inputs(events: list[pygame.event.Event]) -> bool:
                             # overlay.gui.push_notification("Interacting with " + gm.player.interaction_character.name)
                         gm.player_interacting = True
                         gm.movement_enabled = False
-            if e.key == pygame.K_LSHIFT:
+            if e.key in [pygame.K_LSHIFT, pygame.K_RSHIFT]:
                 gm.speed = gm.fast_speed
         if e.type == pygame.KEYUP:
-            if e.key == pygame.K_LSHIFT:
+            if e.key in [pygame.K_LSHIFT, pygame.K_RSHIFT]:
                 gm.speed = gm.normal_speed
         if e.type == pygame.VIDEORESIZE:
             # if the screen is resized, update everything to the new size

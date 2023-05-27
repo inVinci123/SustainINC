@@ -11,9 +11,9 @@ bgtracks = [
     # "./Assets/Audio/stardew2.mp3",
     # "./Assets/Audio/stardew3.mp3",
     # "./Assets/Audio/stardew4.mp3",
-    "./Assets/Audio/stardew6.mp3",
-    "./Assets/Audio/stardew7.mp3"
+    "./Assets/Audio/stardew7.mp3",
     "./Assets/Audio/stardew5.mp3",
+    "./Assets/Audio/stardew6.mp3",
 ]
 
 soundeffects = {
@@ -26,7 +26,6 @@ def loop() -> None:
     global bg_id, playing
     if bgmusic:
         if not pygame.mixer.music.get_busy():
-            print("playing")
             pygame.mixer.music.load(bgtracks[bg_id])
             pygame.mixer.music.play()
             bg_id += 1

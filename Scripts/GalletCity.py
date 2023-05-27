@@ -18,5 +18,4 @@ class GalletCity:
         self.scale = scale
         self.image = am.gallet_city
         self.scaled_pos = (self.unscaled_pos[0]*self.scale, self.unscaled_pos[1]*self.scale)
-        print(self.scaled_pos)
         return None

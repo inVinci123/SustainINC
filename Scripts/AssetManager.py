@@ -267,7 +267,8 @@ def load_assets(game_scale):
         24: pygame.font.Font("Assets/Fonts/ApercuMonoProMedium.ttf", int(24*game_scale)),
         30: pygame.font.Font("Assets/Fonts/ApercuMonoProMedium.ttf", int(30*game_scale)),
         50: pygame.font.Font("Assets/Fonts/ApercuMonoProMedium.ttf", int(50*game_scale)),
-        64: pygame.font.Font("Assets/Fonts/ApercuMonoProMedium.ttf", int(64*game_scale))
+        64: pygame.font.Font("Assets/Fonts/ApercuMonoProMedium.ttf", int(64*game_scale)),
+        100: pygame.font.Font("Assets/Fonts/ApercuMonoProMedium.ttf", int(100*game_scale))
     }
 
 # IMAGES INSPIRED FROM DREAM STUDIO AND DALLE

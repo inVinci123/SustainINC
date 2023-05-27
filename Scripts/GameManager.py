@@ -16,7 +16,7 @@ class GameManager:
         am.load_assets(game_scale)
         return None
     
-    def post_init(self, game_scale: float, debugging: bool = False, player_name: str = "Player") -> None:
+    def post_init(self, game_scale: float, debugging: bool = False, player_name: str = "Player", end_game= lambda *kwargs: None) -> None:
         am.load_assets(game_scale)
 
         # a dictionary of global variables/flags keeping track of whether in game events have occured or not
@@ -40,6 +40,8 @@ class GameManager:
             "carboncontribution": 500,
             "hascar": False
         }
+
+        self.end_game = end_game
 
         self.debugging: bool = debugging
         self.game_scale = game_scale
@@ -109,13 +111,8 @@ class GameManager:
         # no collisions for 2 frames
         self.collision_cooldown: int = 2 
         self.player_interacting: bool = False
-
-        self.grass_tiles: list[GrassTile] = []
-        for i in range(-50, 50):  # 4000 blocks of grass as the underlayer
-            for j in range(-10, 10):
-                g = GrassTile((i*255, j*255))
-                self.grass_tiles.append(g)
-                g.update_scale(game_scale)
+        
+        overlay.gui.show_hint = True
         return None
     
     def spend_resources(self, amount) -> bool:
@@ -198,11 +195,6 @@ class GameManager:
             if abs(self.cam.unscaled_cam_pos[0]+640-b.unscaled_pos[0]) > 700+b.unscaled_size[0] or abs(self.cam.unscaled_cam_pos[1]+360-b.unscaled_pos[1]) > 400+b.unscaled_size[1]: b.inframe = False
             else: b.inframe = True
 
-        for g in self.grass_tiles:
-            if abs(self.cam.unscaled_cam_pos[0]+640-g.unscaled_pos[0]) > 900 or abs(self.cam.unscaled_cam_pos[1]+360-g.unscaled_pos[1]) > 620:
-                g.inframe = False
-            else:
-                g.inframe = True
 
         if self.player_interacting:
             if not self.player.interaction_character == None:
@@ -221,10 +213,7 @@ class GameManager:
         if self.flags["globaltemperatureunlocked"]:
             self.global_temp += self.get_delta_temp(deltatime) # type: ignore
         if self.global_temp >= 1.5:
-            print("took the L")
-            # TODO: exit screen
-            quit()
-        # print(self.global_temp)
+            self.end_game(0)
         overlay.gui.update_global_temp(self.global_temp)
         return None
     
@@ -307,7 +296,7 @@ class GameManager:
         """
     
     def finish_game(self) -> None:
-        print("GG SUIIIIIII")
+        self.end_game((1.5-self.global_temp)*20000+1000)
         return None
 
     def resize(self, game_scale) -> None:
@@ -315,7 +304,6 @@ class GameManager:
         self.game_scale = game_scale
         self.collision_cooldown = 2
         am.load_assets(game_scale)
-        os.system("cls")
         
         # assign the relevant anim to each character
         self.player.update_scale(game_scale, am.ben_anim)
@@ -335,8 +323,6 @@ class GameManager:
         for b in self.building_list:
             b.update_scale(game_scale)
 
-        for tile in self.grass_tiles:
-            tile.update_scale(game_scale)
         self.cam.rescale(game_scale)
 
         return None
