@@ -3,7 +3,8 @@ Holds code for the HSC Major Project
 
 Please note that while I have licensed the project for free use, the Assets are not my intellectual property (I'll reference them later)
 
-## First alpha pre-release (Executable is Windows compatible only):
+## First alpha pre-release
+(Executable is Windows compatible only)
 ### Install Instructions
 #### Windows
 * Download the zip file `SustainReleasev0.10-alpha.zip` and extract it in a suitable folder.
