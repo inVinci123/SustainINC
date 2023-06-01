@@ -277,3 +277,157 @@ class OptionsPrompt(InteractionPrompt):
         super().draw(screen)
         self.opts.draw(screen, check)
         return None
+    
+class InputField:
+    def __init__(self, unscaled_pos, unscaled_size, scale=1, chr_limit=10) -> None:
+        self.scale = scale
+        self.game_screen_dimensions = (1280*scale, 720*scale)
+
+        self.unscaled_pos = unscaled_pos
+        self.scaled_pos = self.unscaled_pos[0]*self.scale, self.unscaled_pos[1]*self.scale
+
+        self.unscaled_size = unscaled_size
+        self.scaled_size = self.unscaled_size[0]*self.scale, self.unscaled_size[1]*self.scale
+
+        self.underline_pos = self.scaled_pos[0], self.scaled_pos[1]+0.95*self.scaled_size[1]
+        self.underline_size = self.scaled_size[0], 0.05*self.scaled_size[1]
+
+        self.character_limit = chr_limit
+        self.allowed_characters="ACBDEFGHIJKLMNOPQRSTUVWXYZacbdefghijklmnopqrstuvwxyz_.,?<>\"':;][]{ }\\|-+=`~!@#$%^&*()"
+
+        self.is_active: bool = False
+        self.hover: bool = False
+        self.click: bool = False
+
+        self.str = "Name: "
+        self.name_str = ""
+        self.timer = 0.5
+
+        self.col: int = 0xFAFAFA
+        self.underline_rect = pygame.Rect(self.underline_pos, self.underline_size)
+        
+        self.running_time: float = 0
+        self.cursor_cool_time: float = 0.5
+        
+        try:
+            self.text_surf = am.normal_font[30].render(self.str+self.name_str, True, 0xFFFFFFFF)
+            self.text_rect = self.text_surf.get_rect()
+            self.text_pos = (self.scaled_pos[0] + self.scaled_size[0]/2 - self.text_rect.width/2, self.scaled_pos[1] + self.scaled_size[1]/2)
+        
+        except AttributeError:
+            pass
+        return None
+    
+    def get_rect(self) -> pygame.Rect:
+        return pygame.Rect(self.scaled_pos, self.scaled_size)
+    
+    def check(self) -> None:
+        mouse = pygame.mouse.get_pos()
+        r_click = pygame.mouse.get_pressed()[0]
+
+        # evaluate the actual mouse position would be if black bars are present
+        w_s = pygame.display.get_window_size()
+        relative_origin = ((w_s[0]-self.game_screen_dimensions[0])/2, (w_s[1]-self.game_screen_dimensions[1])/2)
+        mouse = (mouse[0]-relative_origin[0], mouse[1]-relative_origin[1])
+        
+        self.hover = self.get_rect().collidepoint(mouse)
+        if not self.click:
+            self.click = self.hover and r_click
+        else:
+            if not r_click:
+                if self.hover:
+                    self.click_complete = True
+                    self.click = False
+                    self.is_active = True
+                else:
+                    self.click = False
+        
+        if r_click and not self.hover:
+            self.is_active = False
+        return None
+    
+    def draw(self, screen: pygame.Surface, deltatime=0.1) -> None:
+        self.running_time += deltatime
+        self.cursor_cool_time -= deltatime
+        if self.cursor_cool_time <= -0.5: self.cursor_cool_time = 0.5
+        
+        self.check()
+        if self.is_active:
+            if self.col == 0xFF0000 and self.timer > 0:
+                self.timer -= deltatime
+            else:
+                self.col = 0x690000 if len(self.name_str) > self.character_limit else 0xFAFAFA
+        else:
+            if self.click:
+                self.col = 0xFAFAFA
+            elif self.hover:
+                self.col = 0x9A9A9A
+            else:
+                self.col = 0x696969
+            
+        pygame.draw.rect(screen, self.col, self.underline_rect)
+
+        if self.is_active and self.cursor_cool_time > 0:
+            self.text_surf = am.normal_font[30].render(self.str+self.name_str+"|", True, 0xFFFFFFFF)
+            self.text_rect = self.text_surf.get_rect()
+            self.text_pos = (self.scaled_pos[0] + self.scaled_size[0]/20, self.scaled_pos[1] + self.scaled_size[1]/2)
+        else:
+            self.text_surf = am.normal_font[30].render(self.str+self.name_str, True, 0xFFFFFFFF)
+            self.text_rect = self.text_surf.get_rect()
+            self.text_pos = (self.scaled_pos[0] + self.scaled_size[0]/20, self.scaled_pos[1] + self.scaled_size[1]/2)
+
+        screen.blit(self.text_surf, self.text_pos)
+        return None
+    
+    def add_letter(self, letter) -> None:
+        if len(self.name_str) > self.character_limit:
+            self.col = 0xFF0000
+            self.timer = 0.5
+        else:
+            self.name_str += letter
+            self.text_surf = am.normal_font[30].render(self.str+self.name_str, True, 0xFFFFFFFF)
+            self.text_rect = self.text_surf.get_rect()
+            self.text_pos = (self.scaled_pos[0] + self.scaled_size[0]/2 - self.text_rect.width/2, self.scaled_pos[1] + self.scaled_size[1]/2)
+        return None
+    
+    def backspace(self) -> None:
+        if len(self.name_str) == 0:
+            self.col = 0xFF0000
+            self.timer = 0.5
+        else:
+            self.name_str = self.name_str[:-1]
+            self.text_surf = am.normal_font[30].render(self.str+self.name_str, True, 0xFFFFFFFF)
+            self.text_rect = self.text_surf.get_rect()
+            self.text_pos = (self.scaled_pos[0] + self.scaled_size[0]/2 - self.text_rect.width/2, self.scaled_pos[1] + self.scaled_size[1]/2)
+        return None
+    
+    def update_text(self, events: list[pygame.event.Event]) -> None:
+        if not self.is_active:
+            return None
+        for e in events:
+            try:
+                if e.type == pygame.KEYDOWN:
+                    if e.unicode in self.allowed_characters:
+                        self.add_letter(e.unicode)
+                    elif e.key == pygame.K_BACKSPACE:
+                        self.backspace()
+            except AttributeError:
+                pass
+        return None
+    
+    def update_scale(self, scale) -> None:
+        self.scale = scale
+        self.game_screen_dimensions = (1280*scale, 720*scale)
+
+        self.scaled_pos = self.unscaled_pos[0]*self.scale, self.unscaled_pos[1]*self.scale
+        self.scaled_size = self.unscaled_size[0]*self.scale, self.unscaled_size[1]*self.scale
+
+        self.underline_pos = self.scaled_pos[0], self.scaled_pos[1]+0.95*self.scaled_size[1]
+        self.underline_size = self.scaled_size[0], 0.05*self.scaled_size[1]
+
+        self.underline_rect = pygame.Rect(self.underline_pos, self.underline_size)
+
+        self.text_surf = am.normal_font[30].render(self.str+self.name_str, True, 0xFFFFFFFF)
+        self.text_rect = self.text_surf.get_rect()
+        self.text_pos = (self.scaled_pos[0] + self.scaled_size[0]/2 - self.text_rect.width/2, self.scaled_pos[1] + self.scaled_size[1]/2)
+        return None

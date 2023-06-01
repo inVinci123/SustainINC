@@ -7,6 +7,7 @@ from Scripts.ScreenElements import InteractionPrompt, Options, OptionsPrompt
 class Character():
     def __init__(self, anim: dict[str, dict[str, list[pygame.Surface]]], pos: tuple[float, float]) -> None:
         self.anim = anim
+        self.is_player: bool = False
         self.name: str = ""
         self.anim_state = "idle"
         self.anim_dir = "s"
@@ -44,6 +45,7 @@ class Player(Character):
     def __init__(self, pos: tuple[float, float]) -> None: # add an avatar, name argument?
         super().__init__(am.ben_anim, pos)
         self.can_interact: bool = False
+        self.is_player = True
         self.interaction_character: NPC | SustainINC | None
 
         self.col = {

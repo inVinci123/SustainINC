@@ -1,6 +1,6 @@
 from typing import Any
 import pygame
-from Scripts.ScreenElements import Text, TextButton, CenteredTextButton
+from Scripts.ScreenElements import Text, TextButton, CenteredTextButton, InputField
 import Scripts.AssetManager as am
 import Scripts.AudioManager as audio
 
@@ -149,10 +149,11 @@ class StartScreen(Screen):
         self.sustain_text = am.normal_font[100].render("SUSTAIN INC", True, 0xFAFAFAFA)
         self.st_rect = self.sustain_text.get_rect()
         
-        self.screen_elements = [ # add screen elements fsalkjdl resume button, save and quit (a list for the butons only)
-            CenteredTextButton((440, 250), (400, 100), self.start_game, "Start Game"),
-            CenteredTextButton((440, 400), (400, 100), self.open_options, "Options"),
-            CenteredTextButton((440, 550), (400, 100), self.quit, "Quit")
+        self.screen_elements = [
+            InputField((440, 150), (400, 100)),
+            CenteredTextButton((440, 300), (400, 100), lambda: self.start_game(self.screen_elements[0].name_str if self.screen_elements[0].name_str.strip() != "" else "Player"), "Start Game"),
+            CenteredTextButton((440, 450), (400, 100), self.open_options, "Options"),
+            CenteredTextButton((440, 600), (400, 100), self.quit, "Quit")
         ]
         self.update_scale(scale)
     
@@ -183,27 +184,36 @@ class StartScreen(Screen):
         return None
     
     def open_options(self) -> None:
+        self.sustain_text = am.normal_font[100].render("OPTIONS", True, 0xFAFAFAFA)
+        self.st_rect = self.sustain_text.get_rect()
         self.options = True
         return None
     
     def close_options(self) -> None:
+        self.sustain_text = am.normal_font[100].render("SUSTAIN INC", True, 0xFAFAFAFA)
+        self.st_rect = self.sustain_text.get_rect()
         self.options = False
         return None
 
-    def process_inputs(self, keys_pressed) -> None:
-
+    def process_inputs(self, events: list[pygame.event.Event]) -> None:
+        self.screen_elements[0].update_text(events)
         return None
     
-    def draw(self, screen) -> None:
+    def draw(self, screen, deltatime=1) -> None:
         screen.blit(self.bg, (-1000*self.scale, -4200*self.scale))
         screen.blit(self.opq_surf, (0, 0))
-        screen.blit(self.sustain_text, ((self.unscaled_dimensions[0]/2)*self.scale - self.st_rect.size[0]/2, 100*self.scale))
         if self.options:
+            screen.blit(self.sustain_text, ((self.unscaled_dimensions[0]/2)*self.scale - self.st_rect.size[0]/2, 100*self.scale))
             for opt in self.opt_elements:
                 opt.draw(screen)
         else:
+            screen.blit(self.sustain_text, ((self.unscaled_dimensions[0]/2)*self.scale - self.st_rect.size[0]/2, 50*self.scale))
             for element in self.screen_elements:
-                element.draw(screen)
+                if type(element) == InputField:
+                    element.draw(screen, deltatime)
+                else:
+                    element.draw(screen)
+        return None
 
     def update_scale(self, scale) -> None:
         super().update_scale(scale)
@@ -219,6 +229,7 @@ class StartScreen(Screen):
         for element in self.screen_elements+self.opt_elements: # correct their positions before continuing
             element.update_scale(scale)
         return None
+
 
 class EndScreen(Screen):
     def __init__(self, scale, quit_game, score=0) -> None:

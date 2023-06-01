@@ -58,9 +58,6 @@ start_menu: bool = True
 
 overlay.gui = overlay.OverlayGUI()
 
-overlay.gui.push_notification("Game started in debugging mode" if debugging else "Game started.", "info")
-overlay.gui.add_objective("firstinteract", "Interact with Melon Usk")
-overlay.gui.refresh_objectives()
 
 paused: bool = False
 
@@ -72,6 +69,11 @@ def close_pause_menu() -> None:
 
 def start_game(player_name="Player") -> None:
     global start_menu, running_time, gm
+
+    overlay.gui.push_notification("Game started in debugging mode" if debugging else "Game started.", "info")
+    overlay.gui.add_objective("firstinteract", "Interact with Melon Usk")
+    overlay.gui.refresh_objectives()
+
     gm.post_init(game_scale, debugging, player_name, end_game)
     overlay.gui.update_scale(game_scale, gm.character_list+[gm.player])
     running_time = 0
@@ -108,7 +110,7 @@ def draw_game_screen() -> None:
     audio.loop()
     game_screen.fill(BG)
     if start_menu:
-        s.draw(game_screen)
+        s.draw(game_screen, deltatime)
         window.blit(game_screen, ((L-game_scale*1280)/2, (H-game_scale*720)/2))
         if debugging:
             l, h = fps_text.get_rect().size
@@ -206,7 +208,7 @@ def process_inputs(events: list[pygame.event.Event]) -> bool:
                 on_resize()
             if e.type == pygame.QUIT:
                 running = False
-        s.process_inputs(keys_pressed)
+        s.process_inputs(events)
         return running
     
     # process inputs for the game

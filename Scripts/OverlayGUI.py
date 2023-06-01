@@ -70,8 +70,11 @@ class OverlayGUI:
     show_hint: bool = False
     try:
         hint_text: Text = Text("Go to Melon Usk and press SPACE to talk to him", (0, 0), (200, 100), am.normal_font[24])
+        map_prompt: pygame.Surface = am.normal_font[18].render("M to trigger Map", True, 0xFAFAFAFA)
+        map_prompt_pos = (1200*scale - map_prompt.get_width(), 700*scale-map_prompt.get_height())
     except AttributeError:
         hint_text: Text
+        map_prompt: pygame.Surface
     try:
         map = pygame.transform.scale(am.gallet_city, (768, 768))
     except AttributeError:
@@ -96,6 +99,9 @@ class OverlayGUI:
             if self.prev_frame:
                 self.prompt.draw(screen, False)
 
+        if self.show_hint:
+            self.hint_text.draw(screen)
+
         if not paused:
             self.show_prompt = False
             if self.show_map:
@@ -104,7 +110,7 @@ class OverlayGUI:
                 for tag in self.name_tags:
                     self.map.blit(tag[0], tag[1])
                 screen.blit(self.map, (640*self.scale-384*self.scale, 360*self.scale-490*self.scale))
-        
+            screen.blit(self.map_prompt, self.map_prompt_pos)
         screen.blit(self.resources_bg, (10*self.scale, 10*self.scale)) 
         if self.show_global_temp: screen.blit(self.temperature_bg, (10*self.scale, 50*self.scale)) 
         try:
@@ -134,11 +140,8 @@ class OverlayGUI:
         screen.blit(self.objectives_bg, (10*self.scale, 100*self.scale))
         for obj in self.display_objectives:
             obj.draw(screen)
-
-        if self.show_hint:
-            self.hint_text.draw(screen)
-
         return None
+
 
     def update_resources(self, val: float = 0) -> None:
         self.prev_resources = val
@@ -147,8 +150,8 @@ class OverlayGUI:
     
     def update_global_temp(self, val: float = 0) -> None:
         self.prev_delta_temp = val
-        value = str(val)[:4]
-        self.global_temp_text = Text(f"Delta Temp: {value}", (20*self.scale, 56*self.scale), (200*self.scale, 20*self.scale), am.normal_font[18], 0xFAFAFAFA if val < 0.5 else (0xFFFF0000 if val < 1 else 0xFF000000))
+        value = str(val)[:4] if val < 1 else str(val)[:6]
+        self.global_temp_text = Text(f"Delta Temp: {value}", (20*self.scale, 56*self.scale), (300*self.scale, 20*self.scale), am.normal_font[18], 0xFAFAFAFA if val < 0.5 else (0xFFFF0000 if val < 1 else 0xFF000000))
         return None
     
     def add_objective(self, id: str, objective: str) -> None:
@@ -217,6 +220,10 @@ class OverlayGUI:
         self.map_text = am.normal_font[50].render("GAME MAP", True, 0xFFFFFFFF)
         self.map_text_pos = (640*scale-self.map_text.get_width()/2 , 20*scale)
         self.hint_text = Text("Go to Melon Usk and press SPACE to talk to him", (250*scale, 590*scale), (740*scale, 100*scale), am.normal_font[24])
+
+        self.map_prompt = am.normal_font[18].render("M to trigger Map", True, 0xFAFAFAFA)
+        self.map_prompt_pos = (1250*self.scale - self.map_prompt.get_width(), 700*self.scale - self.map_prompt.get_height())
+
         if characters != None:
              self.characters = characters
         self.update_map_name_tags(scale)
@@ -226,7 +233,7 @@ class OverlayGUI:
         self.name_tags.clear()
         for c in self.characters:
             if not c.name == "Sahara Employee":
-                self.name_tags.append((am.normal_font[12].render(c.name, True, 0xFFFFFFFF, 0x00000000), ((c.unscaled_pos[0]+2560)*0.15*scale, (c.unscaled_pos[1]+2560)*0.15*scale)))
+                self.name_tags.append((am.normal_font[12].render(c.name, True, 0xFFFFFFFF, 0x006974FF if c.is_player else 0x00000000), ((c.unscaled_pos[0]+2560)*0.15*scale, (c.unscaled_pos[1]+2560)*0.15*scale)))
         return None
     
     def trigger_map(self) -> bool:

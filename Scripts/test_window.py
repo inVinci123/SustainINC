@@ -20,7 +20,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
             print("Bye Bye!")
-    screen.fill((r, g, b))
+    screen.fill(0xFFFFFF)
     if red:
         g -= 1
         r += 1

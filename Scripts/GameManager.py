@@ -195,7 +195,6 @@ class GameManager:
             if abs(self.cam.unscaled_cam_pos[0]+640-b.unscaled_pos[0]) > 700+b.unscaled_size[0] or abs(self.cam.unscaled_cam_pos[1]+360-b.unscaled_pos[1]) > 400+b.unscaled_size[1]: b.inframe = False
             else: b.inframe = True
 
-
         if self.player_interacting:
             if not self.player.interaction_character == None:
                 if self.player.interaction_character.interact():
@@ -230,9 +229,9 @@ class GameManager:
                 self.movement_enabled = True
         
         if self.flags["firstmeloninteraction"]:
-            checkrects = [c.collider_rect for c in self.character_list] + [b.col_rect for b in self.building_list] + [c.col_rect for c in self.colliders]
+            checkrects = [c.collider_rect for c in self.character_list] + [c.col_rect for c in self.colliders] # not checking for building colliders as they interfere with the normal colliders
         else:
-            checkrects = [c.collider_rect for c in self.character_list] + [b.col_rect for b in self.building_list] + [c.col_rect for c in self.colliders+self.extra_colliders]
+            checkrects = [c.collider_rect for c in self.character_list] + [c.col_rect for c in self.colliders+self.extra_colliders]
         # index = self.player.collider_rect.collidelist(checkrects)
         col_list = self.player.collider_rect.collidelistall(checkrects)
         if len(col_list) == 0:

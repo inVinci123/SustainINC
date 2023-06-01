@@ -37,7 +37,7 @@ class Collider:
 class Building(Collider):
     # learn how to make buildings here: https://www.youtube.com/watch?v=jKTOGz3XAcc
     def __init__(self, name: str, pos: tuple[float, float], img_str: str | None = None) -> None:
-        """ Completely rewritten for buildings, effectively never used..."""
+        """ Completely rewritten for buildings, never even used..."""
         self.name = name
         self.unscaled_pos: tuple[float, float] = pos
         self.scale = 1
@@ -174,7 +174,7 @@ class SustainINC(Building):
     
     def check_upgrade(self) -> None:
         if self.level == self.max_level:
-            return
+            return None
         if self.cost > self.gm.resources:
             self.prompts[0].opts.options[0].inactive = True # type: ignore
         else:
