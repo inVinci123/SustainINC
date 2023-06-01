@@ -51,7 +51,7 @@ class PauseScreen(Screen):
         self.rtt_rect = self.running_time_text.get_rect()
 
         # rate of change of global warming (aim to get this down to zero)
-        self.carbon_contribution_text = am.normal_font[16].render("Delta Delta temp: ", True, 0xFAFAFAFA)
+        self.carbon_contribution_text = am.normal_font[16].render("dTemp/dtime: ", True, 0xFAFAFAFA)
         self.cct_rect = self.carbon_contribution_text.get_rect()
         return None
 
@@ -90,7 +90,7 @@ class PauseScreen(Screen):
         self.running_time_text = am.normal_font[16].render("Running time: ", True, 0xFAFAFAFA)
         self.rtt_rect = self.running_time_text.get_rect()
         # rate of change of global warming (aim to get this down to zero)
-        self.carbon_contribution_text = am.normal_font[16].render("Delta Delta temp: ", True, 0xFAFAFAFA)
+        self.carbon_contribution_text = am.normal_font[16].render("dTemp/dtime: ", True, 0xFAFAFAFA)
         self.cct_rect = self.carbon_contribution_text.get_rect()
 
         self.shadow_surf = pygame.Surface(self.scaled_dimensions)
@@ -123,7 +123,7 @@ class PauseScreen(Screen):
         self.running_time_text = am.normal_font[16].render(f"Running time: {running_time}s", True, 0xFAFAFAFA)
         self.rtt_rect = self.running_time_text.get_rect()
 
-        self.carbon_contribution_text = am.normal_font[16].render(f"Delta Delta temp: {str(delta_delta_temp)[:6]}", True, 0xFAFAFAFA) # unrounded value
+        self.carbon_contribution_text = am.normal_font[16].render(f"dTemp/dtime: {str(delta_delta_temp)[:6]}", True, 0xFAFAFAFA) # unrounded value
         self.cct_rect = self.carbon_contribution_text.get_rect()
         return None
     
@@ -221,7 +221,7 @@ class StartScreen(Screen):
         self.opq_surf.fill(0x121212)
         self.opq_surf.set_alpha(150)
 
-        self.sustain_text = am.normal_font[100].render("SUSTAIN INC", True, 0xFAFAFAFA)
+        self.sustain_text = am.normal_font[100].render("SUSTAIN INC", True, 0xFAFAFAFA) if not self.options else am.normal_font[100].render("OPTIONS", True, 0xFAFAFAFA)
         self.st_rect = self.sustain_text.get_rect()
 
         self.bg = pygame.transform.scale(am.gallet_city, (5120*self.scale, 5120*self.scale))
