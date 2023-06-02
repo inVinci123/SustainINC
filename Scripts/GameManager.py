@@ -12,17 +12,21 @@ import Scripts.OverlayGUI as overlay
 
 
 class GameManager:
+    """ Manages the game processes, records in-game events, handles game evaluation, etc. """
     def __init__(self, game_scale) -> None:
+        """ load the assets before the game is started """
         am.load_assets(game_scale)
         return None
     
     def post_init(self, game_scale: float, debugging: bool = False, player_name: str = "Player", end_game= lambda *kwargs: None) -> None:
+        """ post constructor executed from main.py when the game actually starts """
         am.load_assets(game_scale)
 
         # a dictionary of global variables/flags keeping track of whether in game events have occured or not
         # since it's mutable, it will be passed by reference to every NPC
         self.flags: dict[str, bool|int|object] = {
             "firstmeloninteraction": False,
+            "secondmeloninteraction": False,
             "sustainlevel": 0,
             "thunderbergreference": False,
             "spendresources": self.spend_resources,
@@ -41,16 +45,15 @@ class GameManager:
             "hascar": False
         }
 
-        self.end_game = end_game
+        self.end_game = end_game # function to end the game
 
         self.debugging: bool = debugging
         self.game_scale = game_scale
-        self.ben_anim: dict = am.ben_anim
         
-        # need it to be standalone
+        # building kept as a standalone mutable object
         self.sustain = SustainINC(self, self.flags)
         
-        self.character_dict: dict[str, NPC] = {
+        self.character_dict: dict[str, NPC] = { # dictionary for the non playable characters
             "Melon Usk": MelonUsk(player_name, self.flags),
             "Grater Thunderberg": GraterThunderberg(player_name, self.flags),
             "Mr Gutters": MrGutters(player_name, self.flags),
@@ -61,61 +64,64 @@ class GameManager:
             "Mr Feast": MrFeast(player_name, self.flags),
             "inV": inV(player_name, self.flags)
         }
-        self.character_list: list[NPC] = [item for _, item in self.character_dict.items()] # class objects are mutable, so this is efficient to do
+        self.character_list: list[NPC] = [item for _, item in self.character_dict.items()] # class objects are mutable, so this is efficient to do and helps iterate over things faster
 
-        self.building_dict: dict[str, Building] = {
+        self.building_dict: dict[str, Building] = { # a dictionary for all the buildings (made with the intention to expand the number of buildings in the game)
             "Sustain INC": self.sustain
         }
         self.building_list: list[Building] = [b for _, b in self.building_dict.items()]
 
-        self.colliders: list[Collider] = []
+        self.colliders: list[Collider] = [] # colliders laid over the bg city
 
-        for col in am.colliders:
+        for col in am.colliders: # load the colliders from the asset manager
             a = Collider((col["xpos"], col["ypos"]), (col["xsiz"], col["ysiz"]))
             self.colliders.append(a)
             a.update_scale(self.game_scale)
         
-        self.extra_colliders = [ # LEAVE THESE ENABLED UNTIL MELON USK HAS BEEN TALKED TO
+        self.extra_colliders = [ # Extra colliders used until the Player talks to Melon Usk
             Collider((-520, 2280), (120, 250)),
             Collider((0, 2300), (120, 250))
         ]
         for c in self.extra_colliders:
             c.update_scale(self.game_scale)
 
-        self.interactables: list[SustainINC | NPC] = self.character_list + [self.sustain]
+        self.interactables: list[SustainINC | NPC] = self.character_list + [self.sustain] # combined list to check to check for interactions
 
+        # update the characters and buildings with the game scale just in case
         for c in self.character_list:
             c.update_scale(game_scale)
         for b in self.building_list:
             b.update_scale(game_scale)
 
+        # player movement variables
         self.anim_dir = "s"
         self.move_dir: tuple[int, int] = (0, 0)
-
-        self.cam = Camera(game_scale, (-365, 2330))
-
         self.movement_enabled: bool = True
         self.walking = False
         self.normal_speed = 280
         self.fast_speed = 2800 if debugging else 600
         self.speed = 280
-        # self.car_mode: bool = False
 
+        self.cam = Camera(game_scale, (-365, 2330))
+
+        # create the player itself
         self.player = Player((-365, 2330))
         self.player.name = player_name
         self.player.update_scale(game_scale)
 
+        # the stuff on the top left
         self.resources: float = 0
         self.global_temp: float = 0
 
-        # no collisions for 2 frames
+        # collision cooldown to pause collisions for 2 frames after the scale is updated (done to avoid a bug)
         self.collision_cooldown: int = 2 
         self.player_interacting: bool = False
         
-        overlay.gui.show_hint = True
+        overlay.gui.show_hint = True # show the hint about what to do first (TALK TO MELON USK)
         return None
     
     def spend_resources(self, amount) -> bool:
+        """ for the player to spend resources """
         if amount < self.resources:
             self.resources -= amount
             return True
@@ -123,19 +129,18 @@ class GameManager:
             return False
     
     def get_resources(self) -> float:
+        """ for the NPCs to check how much the player has before allowing the conduct of the transaction """
         return self.resources
 
     def unlock_global_temperature(self) -> None:
+        """ triggered when the the player first interacts with Mr Gutters """
         self.flags["globaltemperatureunlocked"] = True
         overlay.gui.show_global_temp = True
         overlay.gui.update_global_temp(0.9)
 
     def evaluate_game_screen(self, deltatime: float = 1, debugging = False) -> None:
-        # if not debugging:
-        #     if self.car_mode:
-        #         self.speed = self.fast_speed
-        #     else: self.speed = self.normal_speed
-        # change the player position if the player is walking
+        """ evaluate the game screen by moving the player, processing collisions, etc. Some of the actions need to know the deltatime: how much time has passed since the last frame """
+        # evaluate the player animation direction (vertical takes priority, even when moving diagonally)
         if not self.movement_enabled:
             self.walking = False
         if self.move_dir[1] == 1:
@@ -148,26 +153,14 @@ class GameManager:
             self.anim_dir = "a"
 
         if self.walking:
-            if self.move_dir[0] != 0 and self.move_dir[1] != 0:
+            if self.move_dir[0] != 0 and self.move_dir[1] != 0: # if the player is moving diagonally, the speed on both axis should be divided by root 2 (to maintain a constant linear speed)
                 self.player.move(self.move_dir[0]*self.speed*deltatime/(2**0.5), self.move_dir[1]*self.speed*deltatime/(2**0.5), self.anim_dir)
                 self.cam.update_movebox(self.move_dir[0]*self.speed*deltatime/(2**0.5), self.move_dir[1]*self.speed*deltatime/(2**0.5))
-            else:
+            else: # else move as normal
                 self.player.move(self.move_dir[0]*self.speed*deltatime, self.move_dir[1]*self.speed*deltatime, self.anim_dir)
                 self.cam.update_movebox(self.move_dir[0]*self.speed*deltatime, self.move_dir[1]*self.speed*deltatime)
-        # if self.walking:
-        #     if self.anim_dir == "w":
-        #         self.player.move(0, -self.speed*deltatime, self.anim_dir)
-        #         self.cam.update_movebox(0, -self.speed*deltatime)
-        #     if self.anim_dir == "s":
-        #         self.player.move(0, self.speed*deltatime, self.anim_dir)
-        #         self.cam.update_movebox(0, self.speed*deltatime)
-        #     if self.anim_dir == "a":
-        #         self.player.move(-self.speed*deltatime, 0, self.anim_dir)
-        #         self.cam.update_movebox(-self.speed*deltatime, 0)
-        #     if self.anim_dir == "d":
-        #         self.player.move(self.speed*deltatime, 0, self.anim_dir)
-        #         self.cam.update_movebox(self.speed*deltatime, 0)
 
+        # evaluate interactions
         interacting: bool = False
         for interactable in self.interactables:
             # check if the interactable is in frame
@@ -180,35 +173,38 @@ class GameManager:
                 continue
             else:
                 interactable.inframe = True
-            # evaluate the player position in a different way for the Building (to consider the centre of the player)
+            # give the player position in a different way to the Building (to consider the centre of the player)
             pos = (self.player.unscaled_pos[0] + 32, self.player.unscaled_pos[1] + 32) if type(interactable) == SustainINC else self.player.unscaled_pos
-            if interactable.check_interact(pos):
+            if interactable.check_interact(pos): # allow the player to interact with this character/building
                 self.player.can_interact = True
                 interacting = True
                 self.player.interaction_character = interactable
-        else: # at the end of the loop
+        else: # at the end of the loop, dissallow interaction if no interactable is found within the interaction range
             if not interacting:
                 self.player.can_interact = False
                 self.player.interaction_character = None
 
-        for b in self.building_list: # check if other buildings are in frame too
+        for b in self.building_list: # check if other buildings are in frame too (deprecated)
             if abs(self.cam.unscaled_cam_pos[0]+640-b.unscaled_pos[0]) > 700+b.unscaled_size[0] or abs(self.cam.unscaled_cam_pos[1]+360-b.unscaled_pos[1]) > 400+b.unscaled_size[1]: b.inframe = False
             else: b.inframe = True
 
-        if self.player_interacting:
+        if self.player_interacting: # process interaction logic if the player is interacting 
             if not self.player.interaction_character == None:
                 if self.player.interaction_character.interact():
                         self.player_interacting = False
                         self.movement_enabled = True
 
-        # check for collisions and adjust the player
+        # check for collisions and adjust the player position accordingly
         x, y = self.check_collisions()
         self.player.move(x, y)
         self.cam.update_movebox(x, y)
         
+        # update the resources
         if self.debugging: self.resources += 5*self.sustain.cost*deltatime
         else: self.resources += self.sustain.income*deltatime # type: ignore
         overlay.gui.update_resources(self.resources)
+        
+        # update the global temperature if it has been unlocked
         if self.flags["globaltemperatureunlocked"]:
             self.global_temp += self.get_delta_temp(deltatime) # type: ignore
         if self.global_temp >= 1.5:
@@ -217,30 +213,32 @@ class GameManager:
         return None
     
     def get_delta_temp(self, deltatime) -> float:
+        """ Return how much to change the temperature by for the given time in seconds """
         return max(0, self.flags["carboncontribution"]*deltatime/(600*2/3*500))
 
     def check_collisions(self) -> tuple[float, float]:
-        if self.collision_cooldown > 0:
+        """ process collisions using the player's 8 collider system """
+        if self.collision_cooldown > 0: # if the game was rescaled, don't do anything
             self.collision_cooldown -= 1
             return (0, 0)
-        elif self.collision_cooldown == 0: # only set movement enabled to true once
+        elif self.collision_cooldown == 0: # once the game has reached the end of the cooldown, allow collisions and movement
             self.collision_cooldown = -1
             if not self.player_interacting:
                 self.movement_enabled = True
         
-        if self.flags["firstmeloninteraction"]:
+        if self.flags["firstmeloninteraction"]: # check the extra colliders if the player hasn't met Melon Usk yet 
             checkrects = [c.collider_rect for c in self.character_list] + [c.col_rect for c in self.colliders] # not checking for building colliders as they interfere with the normal colliders
         else:
             checkrects = [c.collider_rect for c in self.character_list] + [c.col_rect for c in self.colliders+self.extra_colliders]
-        # index = self.player.collider_rect.collidelist(checkrects)
-        col_list = self.player.collider_rect.collidelistall(checkrects)
+            
+        col_list = self.player.collider_rect.collidelistall(checkrects) # indices of all colliders that are touching the player
         if len(col_list) == 0:
             return (0, 0)
         
         return_vals: list[tuple[float, float]] = []
-        for i in col_list:
-            # edge collisions
+        for i in col_list: # for each collider touching the player
             col_rect = checkrects[i]
+            # check edge collisions and correct them accordingly (hierarchy starting from left)
             if self.player.col['l'].colliderect(col_rect):  # left
                 return_vals.append(((col_rect.width/2 - (self.player.col["l"].left - col_rect.centerx)), 0))
             elif self.player.col['r'].colliderect(col_rect):  # right
@@ -250,7 +248,7 @@ class GameManager:
             elif self.player.col['b'].colliderect(col_rect):  # bottom
                 return_vals.append((0, ((col_rect.centery - self.player.col["b"].bottom) - col_rect.height/2)))
 
-            # corner collisions
+            # else check corner collisions and correct them accordingly
             elif self.player.col['tl'].colliderect(col_rect):  # top left
                 return_vals.append(((col_rect.width/2 - (self.player.col["l"].left - col_rect.centerx)), (col_rect.height/2 - (self.player.col["t"].top - col_rect.centery))))
             elif self.player.col['bl'].colliderect(col_rect):  # bottom left
@@ -261,50 +259,23 @@ class GameManager:
                 return_vals.append((((col_rect.centerx - self.player.col["r"].right) - col_rect.width/2), (col_rect.height/2 - (self.player.col["t"].top - col_rect.centery))))
 
         return_val = (0, 0)
-        for rv in return_vals:
+        for rv in return_vals: # sum all the return values to see what the final correction value should be
             return_val = (return_val[0]+rv[0], return_val[1]+rv[1])
         return return_val
-
-        """
-        if index == -1: return (0, 0)
-
-        col_rect = checkrects[index]
-
-        delta_cor = 1 # an extra correction amount to prevent infinite collisions and cause double collider glitches
-        # check edge collisions
-        if self.player.col['l'].colliderect(col_rect):  # left
-            return ((col_rect.width/2 - (self.player.col["l"].left - col_rect.centerx)) + delta_cor, 0)
-        if self.player.col['r'].colliderect(col_rect):  # right
-            return (((col_rect.centerx - self.player.col["r"].right) - col_rect.width/2) - delta_cor, 0)
-        if self.player.col['t'].colliderect(col_rect):  # top
-            return (0, (col_rect.height/2 - (self.player.col["t"].top - col_rect.centery)) + delta_cor)
-        if self.player.col['b'].colliderect(col_rect):  # bottom
-            return (0, ((col_rect.centery - self.player.col["b"].bottom) - col_rect.height/2) - delta_cor)
-
-        # check corner collisions
-        if self.player.col['tl'].colliderect(col_rect):  # top left
-            return ((col_rect.width/2 - (self.player.col["l"].left - col_rect.centerx)) + delta_cor, (col_rect.height/2 - (self.player.col["t"].top - col_rect.centery)) + delta_cor)
-        if self.player.col['bl'].colliderect(col_rect):  # bottom left
-            return ((col_rect.width/2 - (self.player.col["l"].left - col_rect.centerx)) + delta_cor, ((col_rect.centery - self.player.col["b"].bottom) - col_rect.height/2) - delta_cor)
-        if self.player.col['br'].colliderect(col_rect):  # bottom right
-            return (((col_rect.centerx - self.player.col["r"].right) - col_rect.width/2) - delta_cor, ((col_rect.centery - self.player.col["b"].bottom) - col_rect.height/2) - delta_cor)
-        if self.player.col['tr'].colliderect(col_rect):  # top right
-            return (((col_rect.centerx - self.player.col["r"].right) - col_rect.width/2) - delta_cor, (col_rect.height/2 - (self.player.col["t"].top - col_rect.centery)) - delta_cor)
-        
-        return (0, 0)
-        """
     
     def finish_game(self) -> None:
+        """ Win the game with a score based on how close the global temp was to 1.5 degrees """
         self.end_game((1.5-self.global_temp)*20000+1000)
         return None
 
     def resize(self, game_scale) -> None:
-        self.movement_enabled = False
-        self.game_scale = game_scale
+        """ Adjust the everything based on the new scale """
+        self.movement_enabled = False # need to disable movement and collisions for the next two frames
         self.collision_cooldown = 2
+        self.game_scale = game_scale
         am.load_assets(game_scale)
         
-        # assign the relevant anim to each character
+        # assign the relevant anim to each character and update their scale
         self.player.update_scale(game_scale, am.ben_anim)
         self.character_dict["Melon Usk"].update_scale(game_scale, am.melon_anim)
         self.character_dict["Grater Thunderberg"].update_scale(game_scale, am.grater_anim)
@@ -316,12 +287,12 @@ class GameManager:
         self.character_dict["Mr Feast"].update_scale(game_scale, am.feast_anim)
         self.character_dict["inV"].update_scale(game_scale, am.inv_anim)
         
-        for c in (self.colliders+self.extra_colliders):
+        for c in (self.colliders+self.extra_colliders): # update the colliders
             c.update_scale(game_scale)
 
-        for b in self.building_list:
+        for b in self.building_list: # update the buildings
             b.update_scale(game_scale)
 
-        self.cam.rescale(game_scale)
+        self.cam.rescale(game_scale) # update the camera position
 
         return None

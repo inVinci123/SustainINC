@@ -6,12 +6,13 @@ import Scripts.OverlayGUI as overlay
 import Scripts.AssetManager as am
 import Scripts.AudioManager as audio
 
+"""This file contains all the in game Non Playable Characters as classes inheriting from the NPC class (Scripts.Character). Like any RPG, there's a lot of dialogues in this game, so this file is pretty long."""
+
 class MelonUsk(NPC):
     def __init__(self, player_name: str, flags: dict[str, bool|int|object]) -> None:
-        self.carbon_contribution = -1
-        self.flags = flags
+        self.flags = flags # dictionary of the certain global events, present with every NPC
         self.player_name = player_name
-        self.investment_amount = 3e5
+        self.investment_amount = 3e5 # base lvl of investment for the first ask
 
         super().__init__(anim=am.melon_anim, pos=(-165, 2300), name="Melon Usk", prompts=[])
         self.prompts = [
@@ -79,6 +80,7 @@ class MelonUsk(NPC):
 
 
     def spend_money(self, amount) -> None:
+        """ spend money and advance to the next prompt level (only valid for certain prompts) """
         self.flags["spendresources"](amount) # type: ignore
         if self.level in [4, 5]:
             self.prompt_index = 0
@@ -101,13 +103,16 @@ class MelonUsk(NPC):
         else:
             self.uninteract()
         return None
-    
 
     def interact(self) -> bool:
+        """ display the relevant Interaction/Options Prompt and check for certain in game events before advancing """
         if self.level == 0:
             if overlay.gui.check_objective("firstinteract"):
                 overlay.gui.remove_objective("firstinteract")
         elif self.level == 1 and self.flags["sustainlevel"] >= 5: # type: ignore
+            if overlay.gui.check_objective("meetuskagain"):
+                overlay.gui.remove_objective("meetuskagain")
+            self.flags["secondmeloninteraction"] = True
             self.level = 2
         elif self.level in (2, 3) and self.flags["donatetoun"]:
             if overlay.gui.check_objective("convinceuskfordani"):
@@ -149,6 +154,7 @@ class MelonUsk(NPC):
         return super().interact()
 
     def uninteract(self) -> None:
+        """ stop interacting and trigger certain in game events """
         self.flags["firstmeloninteraction"] = True
         overlay.gui.show_hint = False
         if self.level == 0:
@@ -186,9 +192,9 @@ class MelonUsk(NPC):
                 overlay.gui.add_objective("reportfinaldone", "Report to Mr Gutters")
         return super().uninteract()
     
+
 class GraterThunderberg(NPC):
     def __init__(self, player_name: str, flags: dict[str, bool|int|object]) -> None:
-        self.carbon_contribution = -1
         self.flags = flags
         self.player_name = player_name
 
@@ -248,13 +254,12 @@ class GraterThunderberg(NPC):
                 self.prompt_index = 0
         return super().interact()
     
-
     def uninteract(self) -> None:
         return super().uninteract()
 
+
 class MrGutters(NPC):
     def __init__(self, player_name: str, flags: dict[str, bool|int|object]) -> None:
-        self.carbon_contribution = -5
         self.flags = flags
         self.player_name = player_name
 
@@ -376,7 +381,6 @@ class MrGutters(NPC):
 
 class MrDani(NPC):
     def __init__(self, player_name: str, flags: dict[str, bool|int|object]) -> None:
-        self.carbon_contribution = 40
         self.flags = flags
         self.player_name = player_name
         self.investment_amount = 1e6
@@ -449,34 +453,10 @@ class MrDani(NPC):
             if overlay.gui.check_objective("convincedani"):
                 overlay.gui.remove_objective("convincedani")
         return super().uninteract()
+    
 
-# remove this class once you are done, only intended to quicken up the process of making new characters
-class TemplateCharacter(NPC):
-    def __init__(self, player_name: str, flags: dict[str, bool|int|object]) -> None:
-        self.flags = flags
-        self.player_name = player_name
-        super().__init__(anim=am.ben_anim, pos=(0, 100), name="PLACEHOLDER FOR THE NAME", prompts=[])
-        self.prompts = [
-            [ # lvl 0
-                OptionsPrompt("GO AWAY, ME NO TALK WITHOUT A REFERENCE", Options([("Leave", self.uninteract)]))
-            ]
-        ]
-        return None
-
-    def spend_money(self, amount) -> None:
-        self.flags["spendresources"](amount) # type: ignore
-        self.uninteract()
-        return None
-    
-    def interact(self) -> bool:
-        return super().interact()
-    
-    def uninteract(self) -> None:
-        return super().uninteract()
-    
 class BuffJesos(NPC):
     def __init__(self, player_name: str, flags: dict[str, bool|int|object]) -> None:
-        self.carbon_contribution = 5
         self.flags = flags
         self.player_name = player_name
         self.investment_amount = 3e8
@@ -603,9 +583,9 @@ class BuffJesos(NPC):
 
         return super().uninteract()
     
+
 class SaharaEmployee(NPC):
     def __init__(self, player_name: str, flags: dict[str, bool|int|object], pos) -> None:
-        self.carbon_contribution = 2
         self.flags = flags
         self.player_name = player_name
         super().__init__(anim=am.sahara_anim, pos=pos, name="Sahara Employee", prompts=[])
@@ -627,9 +607,9 @@ class SaharaEmployee(NPC):
     def uninteract(self) -> None:
         return super().uninteract()
 
+
 class MrFeast(NPC):
     def __init__(self, player_name: str, flags: dict[str, bool|int|object]) -> None:
-        self.carbon_contribution = 1
         self.flags = flags
         self.player_name = player_name
         self.donation_amount = 1e9
@@ -720,6 +700,7 @@ class MrFeast(NPC):
                 overlay.gui.add_objective("reportfinaldone", "Report to Mr Gutters")
             self.level = 7
         return super().uninteract()
+    
     
 class inV(NPC):
     def __init__(self, player_name: str, flags: dict[str, bool|int|object]) -> None:

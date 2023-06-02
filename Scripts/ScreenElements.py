@@ -279,7 +279,7 @@ class OptionsPrompt(InteractionPrompt):
         return None
     
 class InputField:
-    def __init__(self, unscaled_pos, unscaled_size, scale=1, chr_limit=10) -> None:
+    def __init__(self, unscaled_pos, unscaled_size, scale=1, chr_limit=11) -> None:
         self.scale = scale
         self.game_screen_dimensions = (1280*scale, 720*scale)
 
@@ -307,7 +307,8 @@ class InputField:
         self.underline_rect = pygame.Rect(self.underline_pos, self.underline_size)
         
         self.running_time: float = 0
-        self.cursor_cool_time: float = 0.5
+        self.cursor_blink_rate: float = 0.45
+        self.cursor_cool_time: float = self.cursor_blink_rate
         
         try:
             self.text_surf = am.normal_font[30].render(self.str+self.name_str, True, 0xFFFFFFFF)
@@ -349,7 +350,7 @@ class InputField:
     def draw(self, screen: pygame.Surface, deltatime=0.1) -> None:
         self.running_time += deltatime
         self.cursor_cool_time -= deltatime
-        if self.cursor_cool_time <= -0.5: self.cursor_cool_time = 0.5
+        if self.cursor_cool_time <= -self.cursor_blink_rate: self.cursor_cool_time = self.cursor_blink_rate
         
         self.check()
         if self.is_active:
@@ -390,27 +391,32 @@ class InputField:
             self.text_pos = (self.scaled_pos[0] + self.scaled_size[0]/2 - self.text_rect.width/2, self.scaled_pos[1] + self.scaled_size[1]/2)
         return None
     
-    def backspace(self) -> None:
+    def backspace(self, clear: bool=False) -> None:
         if len(self.name_str) == 0:
             self.col = 0xFF0000
             self.timer = 0.5
         else:
-            self.name_str = self.name_str[:-1]
+            
+            self.name_str = "" if clear else self.name_str[:-1]
             self.text_surf = am.normal_font[30].render(self.str+self.name_str, True, 0xFFFFFFFF)
             self.text_rect = self.text_surf.get_rect()
             self.text_pos = (self.scaled_pos[0] + self.scaled_size[0]/2 - self.text_rect.width/2, self.scaled_pos[1] + self.scaled_size[1]/2)
         return None
     
-    def update_text(self, events: list[pygame.event.Event]) -> None:
+    def update_text(self, events: list[pygame.event.Event], keys_pressed=[]) -> None:
         if not self.is_active:
             return None
+        try:
+            ctrl = keys_pressed[pygame.K_LCTRL] or keys_pressed[pygame.K_RCTRL]
+        except IndexError:
+            ctrl = False
         for e in events:
             try:
                 if e.type == pygame.KEYDOWN:
                     if e.unicode in self.allowed_characters:
                         self.add_letter(e.unicode)
                     elif e.key == pygame.K_BACKSPACE:
-                        self.backspace()
+                        self.backspace(ctrl)
             except AttributeError:
                 pass
         return None
