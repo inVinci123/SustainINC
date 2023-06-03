@@ -1,7 +1,6 @@
 import pygame
 import os
 
-from Scripts.Tiles import GrassTile
 from Scripts.Camera import Camera
 from Scripts.Character import Character, Player, NPC
 from Scripts.GameCharacters import SaharaEmployee, BuffJesos, GraterThunderberg, MelonUsk, MrDani, MrFeast, MrGutters, inV
@@ -114,8 +113,10 @@ class GameManager:
         self.global_temp: float = 0
 
         # collision cooldown to pause collisions for 2 frames after the scale is updated (done to avoid a bug)
-        self.collision_cooldown: int = 2 
+        self.collision_cooldown: int = 2
         self.player_interacting: bool = False
+        
+        self.collided_last_frame: bool = False # whether the player collided last frame
         
         overlay.gui.show_hint = True # show the hint about what to do first (TALK TO MELON USK)
         return None
@@ -152,13 +153,16 @@ class GameManager:
         elif self.move_dir[0] == -1:
             self.anim_dir = "a"
 
+        s = self.speed if not self.collided_last_frame else self.normal_speed # if the player collided last frame, slow down
+        self.collided_last_frame = False # reset the previous frame's collision boolean
+
         if self.walking:
             if self.move_dir[0] != 0 and self.move_dir[1] != 0: # if the player is moving diagonally, the speed on both axis should be divided by root 2 (to maintain a constant linear speed)
-                self.player.move(self.move_dir[0]*self.speed*deltatime/(2**0.5), self.move_dir[1]*self.speed*deltatime/(2**0.5), self.anim_dir)
-                self.cam.update_movebox(self.move_dir[0]*self.speed*deltatime/(2**0.5), self.move_dir[1]*self.speed*deltatime/(2**0.5))
+                self.player.move(self.move_dir[0]*s*deltatime/(2**0.5), self.move_dir[1]*s*deltatime/(2**0.5), self.anim_dir)
+                self.cam.update_movebox(self.move_dir[0]*s*deltatime/(2**0.5), self.move_dir[1]*s*deltatime/(2**0.5))
             else: # else move as normal
-                self.player.move(self.move_dir[0]*self.speed*deltatime, self.move_dir[1]*self.speed*deltatime, self.anim_dir)
-                self.cam.update_movebox(self.move_dir[0]*self.speed*deltatime, self.move_dir[1]*self.speed*deltatime)
+                self.player.move(self.move_dir[0]*s*deltatime, self.move_dir[1]*s*deltatime, self.anim_dir)
+                self.cam.update_movebox(self.move_dir[0]*s*deltatime, self.move_dir[1]*s*deltatime)
 
         # evaluate interactions
         interacting: bool = False
@@ -196,6 +200,8 @@ class GameManager:
 
         # check for collisions and adjust the player position accordingly
         x, y = self.check_collisions()
+        if abs(x) > 1*self.game_scale or abs(y) > 1*self.game_scale:
+            self.collided_last_frame = True
         self.player.move(x, y)
         self.cam.update_movebox(x, y)
         
