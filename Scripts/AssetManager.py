@@ -10,7 +10,6 @@ feast_anim: dict[str, dict[str, list[pygame.Surface]]]
 jesos_anim: dict[str, dict[str, list[pygame.Surface]]]
 sahara_anim: dict[str, dict[str, list[pygame.Surface]]]
 inv_anim: dict[str, dict[str, list[pygame.Surface]]]
-grass_tile: pygame.Surface
 
 # font and buildings
 normal_font: dict[int, pygame.font.Font]
@@ -26,7 +25,7 @@ with open("./Assets/collider_data.json", "r") as col_data:
 
 def load_assets(game_scale):
     """ load every single asset according to the game scale """
-    global ben_anim, dani_anim, melon_anim, gutters_anim, jesos_anim, sahara_anim, inv_anim, feast_anim, grater_anim, grass_tile, normal_font, buildings, gallet_city
+    global ben_anim, dani_anim, melon_anim, gutters_anim, jesos_anim, sahara_anim, inv_anim, feast_anim, grater_anim, normal_font, buildings, gallet_city
 
     gallet_city = pygame.transform.scale(pygame.image.load("./Assets/gallet_city.png"), (5120*game_scale, 5120*game_scale))
 

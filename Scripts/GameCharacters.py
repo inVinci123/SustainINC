@@ -47,12 +47,14 @@ class MelonUsk(NPC):
             [ # lvl 7
                 InteractionPrompt(f"{player_name}: Hello Mr Usk, I have a favour to ask you. Mr. Dani requests you to join hands with him as he switches to a more sustainable route..."),
                 InteractionPrompt("MELON USK: MR DANI? No way, I ain't joining hands with him..."),
-                InteractionPrompt("Well if you insist, I'll give him a shot. But only if you are willing to go to Buff Jesos and ask him about the secret of his shampoo- I mean his e-commerce platform, Sahara.")
+                InteractionPrompt("Well if you insist, I'll give him a shot. But only if you are willing to go to Buff Jesos and ask him about the secrets of his e-commerce platform, Sahara.")
             ],
             [ # lvl 8
                 InteractionPrompt(f"MELON USK: Did he agree to it?"),
                 InteractionPrompt(f"{self.player_name}: Well, he asked you to trade your SpaceY rockets..."),
-                InteractionPrompt(f"MELON USK: Anything for the Shampoo. I mean, Sahara.")
+                InteractionPrompt(f"MELON USK: Anything for the secrets of Sahara!"),
+                InteractionPrompt(f"{self.player_name}: And your shampoo..."),
+                InteractionPrompt(f"MELON USK: Shampoo?")
             ],
             [ # lvl 9
                 InteractionPrompt("MELON USK: Thanks, I'm in to partner with Dani now")
@@ -467,7 +469,7 @@ class BuffJesos(NPC):
             ],
             [ # lvl 1
                 InteractionPrompt(f"BUFF JESOS: Who are you?"),
-                InteractionPrompt(f"{self.player_name}: Hello Mr. Jesos! I see your incredible e-commerce platform, Sahara. I am a representative of the UN, {self.player_name}."),
+                InteractionPrompt(f"{self.player_name}: Hello Mr. Jesos! I am a representative of the UN, {self.player_name}. I admire your wonderful e-commerce platform, Sahara"),
                 InteractionPrompt(f"BUFF JESOS: Okay, why are you here, {self.player_name}?"),
                 InteractionPrompt(f"{self.player_name}: I was wondering if you are willing to share your secrets of how Sahara works."),
                 InteractionPrompt("BUFF JESOS: Are you stupid? No business just gives away their secrets like that..."),
@@ -477,10 +479,10 @@ class BuffJesos(NPC):
                 OptionsPrompt("BUFF JESOS: If you are willing to invest $$, I'll consider it.", Options([("$ 1b", lambda: self.spend_money(1e9)), ("Not now", self.uninteract)]))
             ],
             [ # lvl 3
-                OptionsPrompt("BUFF JESOS: That money will be put to a good use. I have another favour to ask - Could you convince Mr Usk to trade me his SpaceY rockets?", Options([("Ugh, fine...", self.uninteract)]))
+                OptionsPrompt("BUFF JESOS: That money will be put to a good use. I have another favour to ask - Could you convince Mr Usk to trade me his SpaceY rockets? Also ask him what shampoo he uses.", Options([("Ugh, fine...", self.uninteract)]))
             ],
             [ # lvl 4
-                InteractionPrompt(f"{self.player_name}: I got you the SpaceY. Will you honour your end of the deal?"),
+                InteractionPrompt(f"{self.player_name}: I got you the SpaceY (and the shampoo). Will you honour your end of the deal?"),
                 OptionsPrompt("BUFF JESOS: That I shall do.", Options([("Thank you.", self.uninteract)]))
             ],
             [ # lvl 5

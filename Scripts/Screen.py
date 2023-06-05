@@ -176,7 +176,7 @@ class StartScreen(Screen):
         # start menu screen elements
         self.screen_elements = [
             InputField((440, 150), (400, 100)),
-            CenteredTextButton((440, 300), (400, 100), lambda: self.start_game(self.screen_elements[0].name_str if self.screen_elements[0].name_str.strip() != "" else "Player"), "Start Game"),
+            CenteredTextButton((440, 300), (400, 100), lambda: self.start_game(self.screen_elements[0].name_str.strip() if self.screen_elements[0].name_str.strip() != "" else "Player"), "Start Game"),
             CenteredTextButton((440, 450), (400, 100), self.open_options, "Options"),
             CenteredTextButton((440, 600), (400, 100), self.quit, "Quit")
         ]

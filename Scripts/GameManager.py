@@ -21,7 +21,7 @@ class GameManager:
         """ post constructor executed from main.py when the game actually starts """
         am.load_assets(game_scale)
 
-        # a dictionary of global variables/flags keeping track of whether in game events have occured or not
+        # a dictionary of global variables/flags keeping track of whether in game events have occurred or not
         # since it's mutable, it will be passed by reference to every NPC
         self.flags: dict[str, bool|int|object] = {
             "firstmeloninteraction": False,
@@ -78,7 +78,7 @@ class GameManager:
             a.update_scale(self.game_scale)
         
         self.extra_colliders = [ # Extra colliders used until the Player talks to Melon Usk
-            Collider((-520, 2280), (120, 250)),
+            Collider((-520, 2280), (80, 250)),
             Collider((0, 2300), (120, 250))
         ]
         for c in self.extra_colliders:

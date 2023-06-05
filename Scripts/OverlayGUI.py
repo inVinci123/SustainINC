@@ -87,7 +87,7 @@ class OverlayGUI:
     
     # map stuff
     try:
-        map = pygame.transform.scale(am.gallet_city, (768, 768))
+        map = pygame.transform.scale(am.gallet_city, (720, 720))
     except AttributeError:
         map: pygame.Surface
     map_bg = pygame.Surface((1280, 720))
@@ -121,9 +121,12 @@ class OverlayGUI:
                 screen.blit(self.map_text, self.map_text_pos)
                 for tag in self.name_tags: # blit the name tags of all game characters on the map
                     self.map.blit(tag[0], tag[1])
-                screen.blit(self.map, (640*self.scale-384*self.scale, 360*self.scale-490*self.scale)) # draw the map 
+                screen.blit(self.map, (640*self.scale-350*self.scale, 360*self.scale-455*self.scale)) # draw the map 
             screen.blit(self.map_prompt, self.map_prompt_pos) # map prompt (M to trigger Map)
         
+        
+        # render objectives bg
+        screen.blit(self.objectives_bg, (10*self.scale, 100*self.scale))
         # draw the resources & temperature
         screen.blit(self.resources_bg, (10*self.scale, 10*self.scale)) 
         if self.show_global_temp: screen.blit(self.temperature_bg, (10*self.scale, 50*self.scale)) 
@@ -150,12 +153,10 @@ class OverlayGUI:
                     n.draw(screen, deltatime)
             if n.deleted:
                 self.deleted_notification = i # delete the notification before the next frame is rendered
-        
         # render objectives
-        screen.blit(self.objectives_bg, (10*self.scale, 100*self.scale))
         for obj in self.display_objectives:
             obj.draw(screen)
-        return None
+            return None
 
     def update_resources(self, val: float = 0) -> None:
         """ update resources with the new value """
@@ -199,8 +200,8 @@ class OverlayGUI:
         # adjust the rest of the stuff based on the number of objectives and the scale
         self.objectives_bg = pygame.Surface((280*self.scale, (100+32*len(self.display_objectives))*self.scale))
         self.objectives_bg.fill(0x000000)
-        self.objectives_bg.set_alpha(100)
-        self.objectives_text = Text("Objectives", (20*self.scale, 120*self.scale), (650*self.scale, 40*self.scale), am.normal_font[24], 0xF9F9F9F9)
+        self.objectives_bg.set_alpha(150)
+        self.objectives_text = Text("Objectives", (20*self.scale, 120*self.scale), (650*self.scale, 40*self.scale), am.normal_font[24], 0xA9A9A9A9)
         return None
     
     def refresh_notifications(self) -> None:
@@ -241,7 +242,7 @@ class OverlayGUI:
         self.map_bg = pygame.Surface((1280*scale, 720*scale))
         self.map_bg.fill(0x00000000)
         self.map_bg.set_alpha(200)
-        self.map = pygame.transform.scale(am.gallet_city, (768*scale, 768*scale))
+        self.map = pygame.transform.scale(am.gallet_city, (720*scale, 720*scale))
         self.map_text = am.normal_font[50].render("GAME MAP", True, 0xFFFFFFFF)
         self.map_text_pos = (640*scale-self.map_text.get_width()/2 , 20*scale)
         self.map_prompt = am.normal_font[18].render("M to trigger Map", True, 0xFAFAFAFA)
@@ -260,7 +261,9 @@ class OverlayGUI:
         self.name_tags.clear()
         for c in self.characters:
             if not c.name == "Sahara Employee":
-                self.name_tags.append((am.normal_font[12].render(c.name, True, 0xFFFFFFFF, 0x006974FF if c.is_player else 0x00000000), ((c.unscaled_pos[0]+2560)*0.15*scale, (c.unscaled_pos[1]+2560)*0.15*scale)))
+                tag = am.normal_font[12].render(c.name, True, 0xFFFFFFFF, 0x006974FF if c.is_player else 0x00000000)
+                pos = ((c.unscaled_pos[0]+2560)*(720/5120)*scale - tag.get_width()/2, (c.unscaled_pos[1]+2560)*(720/5120)*scale-tag.get_height()/2)
+                self.name_tags.append((tag, pos))
         return None
     
     def trigger_map(self) -> bool:
