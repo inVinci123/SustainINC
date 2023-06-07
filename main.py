@@ -47,6 +47,13 @@ else:
 window = pygame.display.set_mode((L, H), pygame.RESIZABLE)
 pygame.display.set_caption("Sustain, Inc.")
 
+# give the application window an icon
+try:
+    logo = pygame.image.load("./Assets/sustainlogo.png")
+    pygame.display.set_icon(logo)
+except FileNotFoundError:
+    pass
+
 # create the game screen (keeping it at the aspect ratio 1280x720)
 game_screen = pygame.Surface((game_scale*1280, game_scale*720))
 

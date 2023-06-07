@@ -156,7 +156,7 @@ class OverlayGUI:
         # render objectives
         for obj in self.display_objectives:
             obj.draw(screen)
-            return None
+        return None
 
     def update_resources(self, val: float = 0) -> None:
         """ update resources with the new value """
