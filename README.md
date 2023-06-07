@@ -1,7 +1,7 @@
 # Sustain, INC.
 ## Info
 This repository holds code for my HSC Major Project.
-Please note that while I have licensed the project for free use, the Assets are not my intellectual property ([See References](##references))
+Please note that while I have licensed the project for free use, the Assets are not my intellectual property ([See References](##-references))
 This is the first production release (Executable is Windows compatible only)
 
 ## Install instructions
